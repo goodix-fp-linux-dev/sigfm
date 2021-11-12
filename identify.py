@@ -4,99 +4,149 @@ from sys import exit as stop
 import cv2 as cv
 import numpy as np
 
-clear = cv.imread('fingerprints/clear.png', 0)
+clear: np.ndarray = cv.imread("fingerprints/clear.png", 0)
 
 
 def update(_):
-    finger_1 = cv.getTrackbarPos('finger', 'image 1')
-    image = cv.getTrackbarPos('image', 'image 1')
-    img1 = cv.imread(f'fingerprints/finger-{finger_1}/{image:02d}.png', 0)
-    finger_2 = cv.getTrackbarPos('finger', 'image 2')
-    image = cv.getTrackbarPos('image', 'image 2')
-    img2 = cv.imread(f'fingerprints/finger-{finger_2}/{image:02d}.png', 0)
+    finger_1: int = cv.getTrackbarPos('finger', 'image 1')
+    number_1: int = cv.getTrackbarPos('image', 'image 1')
+    image_1: np.ndarray = cv.imread(
+        f"fingerprints/finger-{finger_1}/"
+        f"{number_1:02d}.png", 0)
 
-    if img1 is None or img2 is None:
+    if image_1 is None:
         return
 
-    img1 = img1 - clear
-    mi = np.min(img1)
-    ma = np.max(img1)
-    t = 255 / (ma - mi)
-    img1 = np.uint8(np.around(t * img1 - mi * t))
-    img2 = img2 - clear
-    mi = np.min(img2)
-    ma = np.max(img2)
-    t = 255 / (ma - mi)
-    img2 = np.uint8(np.around(t * img2 - mi * t))
+    finger_2: int = cv.getTrackbarPos('finger', 'image 2')
+    number_2: int = cv.getTrackbarPos('image', 'image 2')
+    image_2: np.ndarray = cv.imread(
+        f"fingerprints/finger-{finger_2}/"
+        f"{number_2:02d}.png", 0)
 
-    # img1 = cv.resize(img1, None, fx=2, fy=2)
-    # img2 = cv.resize(img2, None, fx=2, fy=2)
+    if image_2 is None:
+        return
 
-    cv.imshow('image 1', img1)
-    cv.imshow('image 2', img2)
+    if finger_1 == finger_2 and number_1 == number_2:
+        return
 
-    img3 = np.concatenate((img1, img2), axis=1)
-    img3 = cv.cvtColor(img3, cv.COLOR_GRAY2RGB)
+    minimum: int
+    maximum: int
+
+    image_1 -= clear
+    minimum = np.min(image_1)
+    maximum = np.max(image_1)
+    tmp = 255 / (maximum - minimum)
+    image_1 = np.uint8(np.around(tmp * image_1 - minimum * tmp))
+
+    image_2 -= clear
+    minimum = np.min(image_2)
+    maximum = np.max(image_2)
+    tmp = 255 / (maximum - minimum)
+    image_2 = np.uint8(np.around(tmp * image_2 - minimum * tmp))
+
+    cv.imshow('image 1', image_1)
+    cv.imshow('image 2', image_2)
 
     sift = cv.SIFT_create()
 
-    kp1, des1 = sift.detectAndCompute(img1, None)
-    kp2, des2 = sift.detectAndCompute(img2, None)
+    keypoints_1: tuple
+    descriptors_1: np.ndarray
+    keypoints_1, descriptors_1 = sift.detectAndCompute(image_1, None)
 
-    bf = cv.BFMatcher()
-    matches = bf.knnMatch(des1, des2, k=2)
+    keypoints_2: tuple
+    descriptors_2: np.ndarray
+    keypoints_2, descriptors_2 = sift.detectAndCompute(image_2, None)
 
-    height, width = img1.shape
+    matchs = []
+    distance_match: float = cv.getTrackbarPos('distance match', 'match') / 100
+    for match_1, match_2 in cv.BFMatcher().knnMatch(descriptors_1,
+                                                    descriptors_2,
+                                                    k=2):
+        if match_1.distance < distance_match * match_2.distance:
+            matchs.append((keypoints_1[match_1.queryIdx].pt,
+                           keypoints_2[match_1.trainIdx].pt))
 
-    d = cv.getTrackbarPos('d', 'match') / 100
-    goods = {}
-    for m, n in matches:
-        if m.distance < d * n.distance:
-            x1, y1 = kp1[m.queryIdx].pt
-            x2, y2 = kp2[m.trainIdx].pt
-            x2 += width
-            goods[((x1, y1), (x2, y2))] = []
+    matchs = list(set(matchs))
 
-    pixel_match = cv.getTrackbarPos('pixelMatch', 'match') / 1000
-    xm = pixel_match * width
-    ym = pixel_match * height
+    angles = []
+    length_match: float = cv.getTrackbarPos('length match', 'match') / 1000
+    for i, match_1 in enumerate(matchs):
+        for match_2 in matchs[i + 1:]:
+            vec_1 = (match_1[0][0] - match_2[0][0],
+                     match_1[0][1] - match_2[0][1])
+            vec_2 = (match_1[1][0] - match_2[1][0],
+                     match_1[1][1] - match_2[1][1])
 
-    for i1 in goods:
-        x1 = i1[1][0] - i1[0][0]
-        y1 = i1[1][1] - i1[0][1]
+            length_1 = np.sqrt(vec_1[0]**2 + vec_1[1]**2)
+            length_2 = np.sqrt(vec_2[0]**2 + vec_2[1]**2)
 
-        for i2 in goods:
-            x2 = i2[1][0] - i2[0][0]
-            y2 = i2[1][1] - i2[0][1]
+            if 1 - min(length_1, length_2) / max(length_1,
+                                                 length_2) <= length_match:
+                product = length_1 * length_2
+                angles.append(
+                    ((np.pi / 2 + np.arcsin(
+                        (vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]) / product),
+                      np.arccos((vec_1[0] * vec_2[1] - vec_1[1] * vec_2[0]) /
+                                product)), (match_1, match_2)))
 
-            if (x1 - xm < x2 < x1 + xm) and (y1 - ym < y2 < y1 + ym):
-                goods[i1].append(i2)
+    count = 0
+    max_count = 0
+    max_true_matchs = []
+    angle_match: float = cv.getTrackbarPos('angle match', 'match') / 1000
+    for i, (angle_1, match_1) in enumerate(angles):
+        count = 0
+        true_matchs = []
+        for j, (angle_2, match_2) in enumerate(angles):
+            if i == j:
+                continue
 
-    vectors = max(goods.values(), key=len) if goods else []
+            if 1 - min(angle_1[0], angle_2[0]) / max(
+                    angle_1[0], angle_2[0]) <= angle_match and 1 - min(
+                        angle_1[1], angle_2[1]) / max(
+                            angle_1[1], angle_2[1]) <= angle_match:
+                count += 1
+                for match in match_1 + match_2:
+                    if match not in true_matchs:
+                        true_matchs.append(match)
 
-    for good in goods.keys():
-        # color = (randint(0, 255), randint(0, 255), randint(0, 255))
-        color = (0, 255, 0) if good in vectors else (0, 0, 255)
+        if count >= max_count:
+            max_count = count
+            max_true_matchs = true_matchs
 
-        cv.line(img3, (round(good[0][0]), round(good[0][1])),
-                (round(good[1][0]), round(good[1][1])), color, 1, cv.LINE_AA)
-        cv.circle(img3, (round(good[0][0]), round(good[0][1])), 3, color, 1,
-                  cv.LINE_AA)
-        cv.circle(img3, (round(good[1][0]), round(good[1][1])), 3, color, 1,
-                  cv.LINE_AA)
+    image_3: np.ndarray
+    image_3 = np.concatenate((image_1, image_2), axis=1)
+    image_3 = cv.cvtColor(image_3, cv.COLOR_GRAY2RGB)
 
-    min_match = cv.getTrackbarPos('minMatch', 'match')
-    color = (0, 255, 0) if len(vectors) >= min_match else (0, 0, 255)
+    for match in matchs:
+        color = (0, 255, 0) if match in max_true_matchs else (0, 0, 255)
 
-    cv.rectangle(img3, (0, 0), (img3.shape[1] - 1, img3.shape[0] - 1), color, 1,
-                 cv.LINE_AA)
+        cv.line(image_3, (round(match[0][0]), round(match[0][1])),
+                (round(match[1][0]) + image_1.shape[1], round(match[1][1])),
+                color, 1, cv.LINE_AA)
+        cv.circle(image_3, (round(match[0][0]), round(match[0][1])), 3, color,
+                  1, cv.LINE_AA)
+        cv.circle(image_3,
+                  (round(match[1][0]) + image_1.shape[1], round(match[1][1])),
+                  3, color, 1, cv.LINE_AA)
 
-    cv.imshow('match', img3)
+    min_match = cv.getTrackbarPos('min match', 'match')
+    if max_count >= min_match:
+        if finger_1 != finger_2:
+            cv.destroyAllWindows()
+            print(
+                f"You found a false positive with image {finger_1}:{number_1} "
+                f"and image {finger_2}:{number_2}")
+            stop()
 
-    if finger_1 != finger_2 and len(vectors) >= min_match:
-        print("You found a false positive")
-        cv.destroyAllWindows()
-        stop()
+        cv.rectangle(image_3, (0, 0),
+                     (image_3.shape[1] - 1, image_3.shape[0] - 1), (0, 255, 0),
+                     1, cv.LINE_AA)
+    else:
+        cv.rectangle(image_3, (0, 0),
+                     (image_3.shape[1] - 1, image_3.shape[0] - 1), (0, 0, 255),
+                     1, cv.LINE_AA)
+
+    cv.imshow('match', image_3)
 
 
 cv.namedWindow('image 1', cv.WINDOW_NORMAL)
@@ -107,9 +157,10 @@ cv.createTrackbar('finger', 'image 1', 0, 9, update)
 cv.createTrackbar('image', 'image 1', 0, 99, update)
 cv.createTrackbar('finger', 'image 2', 0, 9, update)
 cv.createTrackbar('image', 'image 2', 1, 99, update)
-cv.createTrackbar('d', 'match', 75, 100, update)
-cv.createTrackbar('minMatch', 'match', 5, 50, update)
-cv.createTrackbar('pixelMatch', 'match', 20, 1000, update)
+cv.createTrackbar('distance match', 'match', 75, 100, update)
+cv.createTrackbar('min match', 'match', 5, 50, update)
+cv.createTrackbar('length match', 'match', 50, 1000, update)
+cv.createTrackbar('angle match', 'match', 50, 1000, update)
 
 update(None)
 
@@ -118,3 +169,4 @@ while True:
         break
 
 cv.destroyAllWindows()
+stop()

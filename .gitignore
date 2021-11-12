@@ -132,5 +132,9 @@ dmypy.json
 *.png
 *.pgm
 
+# Numpy files
+*.npy
+*.npz
+
 # Binaries firmwares
 *.bin
