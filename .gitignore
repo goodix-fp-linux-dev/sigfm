@@ -138,3 +138,7 @@ dmypy.json
 
 # Binaries firmwares
 *.bin
+
+#VSCodium folder
+.vscode/launch.json
+.vscode/settings.json
