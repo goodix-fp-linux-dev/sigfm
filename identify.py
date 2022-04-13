@@ -4,15 +4,15 @@ from sys import exit as stop
 import cv2 as cv
 import numpy as np
 
-clear: np.ndarray = cv.imread("fingerprints/clear.png", 0)
+clear: np.ndarray = cv.imread("/home/mango/fpr/clear.jpg", 0)
 
 
 def update(_):
     finger_1: int = cv.getTrackbarPos('finger', 'image 1')
     number_1: int = cv.getTrackbarPos('image', 'image 1')
     image_1: np.ndarray = cv.imread(
-        f"fingerprints/finger-{finger_1}/"
-        f"{number_1:02d}.png", 0)
+        f"/home/mango/fpr/finger-{finger_1}/"
+        f"{number_1:d}.jpg", 0)
 
     if image_1 is None:
         return
@@ -20,8 +20,8 @@ def update(_):
     finger_2: int = cv.getTrackbarPos('finger', 'image 2')
     number_2: int = cv.getTrackbarPos('image', 'image 2')
     image_2: np.ndarray = cv.imread(
-        f"fingerprints/finger-{finger_2}/"
-        f"{number_2:02d}.png", 0)
+        f"/home/mango/fpr/finger-{finger_2}/"
+        f"{number_2:d}.jpg", 0)
 
     if image_2 is None:
         return
@@ -67,7 +67,7 @@ def update(_):
                            keypoints_2[match_1.trainIdx].pt))
 
     matchs = list(set(matchs))
-
+    print(matchs)
     angles = []
     length_match: float = cv.getTrackbarPos('length match', 'match') / 1000
     for i, match_1 in enumerate(matchs):
@@ -84,10 +84,11 @@ def update(_):
                                                  length_2) <= length_match:
                 product = length_1 * length_2
                 angles.append(
-                    ((np.pi / 2 + np.arcsin(
-                        (vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]) / product),
-                      np.arccos((vec_1[0] * vec_2[1] - vec_1[1] * vec_2[0]) /
-                                product)), (match_1, match_2)))
+                    ((np.pi / 2 + 
+                        np.arcsin((vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]) / product),
+                        np.arccos((vec_1[0] * vec_2[1] - vec_1[1] * vec_2[0]) / product)
+                     ),
+                     (match_1, match_2)))
 
     count = 0
     max_count = 0
