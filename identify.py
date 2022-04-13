@@ -69,6 +69,7 @@ def update(_):
     matchs = list(set(matchs))
     print(matchs)
     angles = []
+    
     length_match: float = cv.getTrackbarPos('length match', 'match') / 1000
     for i, match_1 in enumerate(matchs):
         for match_2 in matchs[i + 1:]:
