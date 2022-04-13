@@ -7,8 +7,7 @@
 #include <string.h>
 
 
-using std::cout; using std::cin;
-using std::endl; using std::string;
+using std::string;
 using std::filesystem::recursive_directory_iterator;
 using std::vector;
 

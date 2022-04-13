@@ -2,16 +2,21 @@
   { "directory": "/home/mango/sigfm/cpp",
     "file": "identify.cpp",
     "output": "/home/mango/sigfm/cpp/build/identify",
-    "arguments": ["/usr/bin/clang++", "-o", "build/identify", "identify.cpp", "-I/usr/lib64/gcc/x86_64-pc-linux-gnu/11.2.0/include-fixed", "-I/usr/local/include/opencv4/", "$(pkg-config --libs opencv4)" , "--target=x86_64-pc-linux-gnu"]
+    "arguments": ["/usr/bin/clang++", "-std=gnu++17", "-o", "build/identify", "identify.cpp", "-I/usr/lib64/gcc/x86_64-pc-linux-gnu/11.2.0/include-fixed", "-I/usr/local/include/opencv4/", "$(pkg-config --libs opencv4)" , "--target=x86_64-pc-linux-gnu"]
   },
   { "directory": "/home/mango/sigfm/cpp",
     "file": "match.cpp",
     "output": "/home/mango/sigfm/cpp/build/identify",
-    "arguments": ["/usr/bin/clang++", "-o", "build/match", "match.cpp", "-I/usr/lib64/gcc/x86_64-pc-linux-gnu/11.2.0/include-fixed", "-I/usr/local/include/opencv4/", "$(pkg-config --libs opencv4)" , "--target=x86_64-pc-linux-gnu"]
+    "arguments": ["/usr/bin/clang++", "-std=gnu++17", "-o", "build/match", "match.cpp", "-I/usr/lib64/gcc/x86_64-pc-linux-gnu/11.2.0/include-fixed", "-I/usr/local/include/opencv4/", "$(pkg-config --libs opencv4)" , "--target=x86_64-pc-linux-gnu"]
   },
   { "directory": "/home/mango/sigfm/cpp",
     "file": "compute.cpp",
     "output": "/home/mango/sigfm/cpp/build/identify",
     "arguments": ["/usr/bin/clang++", "-std=gnu++17", "-o", "build/compute", "compute.cpp", "-I/usr/lib64/gcc/x86_64-pc-linux-gnu/11.2.0/include-fixed", "-I/usr/local/include/opencv4/", "$(pkg-config --libs opencv4)" , "--target=x86_64-pc-linux-gnu"]
+  },
+  { "directory": "/home/mango/sigfm/cpp",
+    "file": "crop",
+    "output": "/home/mango/sigfm/cpp/build/identify",
+    "arguments": ["/usr/bin/clang++", "-std=gnu++17", "-o", "build/crop", "crop.cpp", "-I/usr/lib64/gcc/x86_64-pc-linux-gnu/11.2.0/include-fixed", "-I/usr/local/include/opencv4/", "$(pkg-config --libs opencv4)" , "--target=x86_64-pc-linux-gnu"]
   }
 ]

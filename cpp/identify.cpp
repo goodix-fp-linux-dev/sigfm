@@ -45,6 +45,10 @@ struct match{
 		this->p1 = ip1;
 		this->p2 = ip2;
 	}
+	match(){
+		this->p1 = cv::Point2f(0,0);
+		this->p2 = cv::Point2f(0,0);
+	}
 	bool operator== (const match& right) const {
 		return std::tie(this->p1, this->p2)==std::tie(right.p1, right.p2);
 	}
@@ -52,6 +56,19 @@ struct match{
 		return this->p1.x < right.p1.x || this->p1.y < right.p1.y;
 	}
 };
+
+struct angle{
+	double cos;
+	double sin;
+	match corr_matches[2];
+	angle(double cos, double sin, match m1, match m2){
+		this->cos = cos;
+		this->sin = sin;
+		this->corr_matches[0] = m1;
+		this->corr_matches[1] = m2;
+	}
+};
+
 string folder_path = "/home/mango/fpr/";
 string ext         = ".jpg";
 
@@ -80,8 +97,9 @@ void update(int, void *){
 	if (image_2.empty())
 		return;
 
-	//   if (finger_1 == finger_2 && number_1 == number_2)
-	//     return;
+	if (finger_1 == finger_2 && number_1 == number_2)
+		return;
+
 	image_1 -= (256 - clear);
 	cv::Mat ROI = cv::Mat::ones(cv::Size(image_1.size[0], image_1.size[1]), 0);
 
@@ -145,26 +163,24 @@ void update(int, void *){
 	}
 
 
-	vector<vector<double>> angles;
+	vector<angle> angles;
 	vector<vector<match>> angles_corresp_matches;
 	// cout << angles_corresp_matches.max_size() << endl;
 
 	float len_match = (float) getTrackbarPos("length match", "match") / 1000;
 
 	set<match> set(matches.begin(), matches.end());
-    // matches.assign(set.begin(), set.end());
+    matches.assign(set.begin(), set.end());
 	cout << "size_after_shrink:" << matches.size() << "/" << matches.max_size() << endl;
 
 	for(int j = 0; j < matches.size(); j++){
 		match match_1 = matches[j];
-
 		for(int k = j+1; k < matches.size(); k++){
 			match match_2 = matches[k];
 
-
-			vector<double> vec_1 = {match_1.p1.x - match_2.p1.x,
+			double vec_1 [2] = {match_1.p1.x - match_2.p1.x,
 									match_1.p1.y - match_2.p1.y};
-			vector<double> vec_2 = {match_1.p2.x - match_2.p2.x,
+			double vec_2 [2] = {match_1.p2.x - match_2.p2.x,
 									match_1.p2.y - match_2.p2.y};
 
 			double length_1 = sqrt(pow(vec_1[0],2) + pow(vec_1[1],2));
@@ -174,9 +190,13 @@ void update(int, void *){
 					max(length_1, length_2) <= len_match){
 	
 				double product = length_1 * length_2;
-				vector<double> vec = {M_PI / 2 + asin((vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]) / product),
-												 acos((vec_1[0] * vec_2[1] - vec_1[1] * vec_2[0]) / product)};
-				angles.push_back(vec);
+				double vec [2] = {};
+				angles.push_back(angle(
+					M_PI / 2 + asin((vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]) / product),
+					acos((vec_1[0] * vec_2[1] - vec_1[1] * vec_2[0]) / product),
+					match_1,
+					match_2
+					));
 				angles_corresp_matches.push_back({match_1, match_2});
 			}
 		}
@@ -189,24 +209,24 @@ void update(int, void *){
 
 	for(int j = 0; j < angles.size(); j++){
 		count = 0;
-		vector<double> angle_1 = angles[j];
-		match match_1[2] = {angles_corresp_matches[j][0], angles_corresp_matches[j][1]};
+		angle angle_1 = angles[j];
+		// match match_1[2] = {angles_corresp_matches[j][0], angles_corresp_matches[j][1]};
 		vector<match> true_matches;
 
 		for(int k = j+1; k < angles.size(); k++){
 
-			vector<double> angle_2 = angles[k];
+			angle angle_2 = angles[k];
 			match match_2[2] = {angles_corresp_matches[k][0], angles_corresp_matches[k][1]};
 
 
-			if (1 - min(angle_1[0], angle_2[0]) / 
-					max(angle_1[0], angle_2[0]) <= angle_match &&
-				1 - min(angle_1[1], angle_2[1]) /
-					max(angle_1[1], angle_2[1]) <= angle_match){
+			if (1 - min(angle_1.sin, angle_2.sin) / 
+					max(angle_1.sin, angle_2.sin) <= angle_match &&
+				1 - min(angle_1.cos, angle_2.cos) /
+					max(angle_1.cos, angle_2.cos) <= angle_match){
 
 				count += 1;
 				
-				for(match match_ : {match_1[0], match_1[1], match_2[0], match_2[1]}){
+				for(match match_ : {angle_1.corr_matches[0], angle_1.corr_matches[1], angle_2.corr_matches[0], angle_2.corr_matches[0]}){
 					bool innocence = true;
 					for(match waround : true_matches){
 						if(waround == match_){
@@ -224,7 +244,7 @@ void update(int, void *){
 				max_true_matches = true_matches;
 			}
 		}
-	} //let me die please
+	}
 
 	cv::Mat image_3; cv::hconcat(image_1, image_2, image_3);
 	cv::cvtColor(image_3, image_3, cv::COLOR_GRAY2RGB);
