@@ -1,33 +1,4 @@
-#include <cstddef>
-#include <filesystem>
-#include <iostream>
-#include <fstream>
-#include <ostream>
-#include <opencv2/core/types.hpp>
-#include <opencv2/core.hpp>
-#include <opencv2/highgui.hpp>
-#include <opencv2/features2d.hpp>
-#include <opencv2/xfeatures2d.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <string>
-#include <sys/file.h>
-#include <string.h>
-#include <cmath>
-#include <tuple>
-#include <vector>
-#include <set>
-
-using std::cout; 
-using std::endl;
-using cv::getTrackbarPos;
-using cv::imread;
-using std::max;
-using std::min;
-using std::to_string;
-using std::set;
-using std::fstream;
-using std::string;
-using std::vector;
+#include "structs.hpp"
 
 // int finger1=0;
 // int finger2=0;
@@ -37,38 +8,6 @@ using std::vector;
 // int mmatch=5;
 // int lmatch=50;
 // int amatch=50;
-
-
-struct match{
-	cv::Point2f p1;
-	cv::Point2f p2;
-	match(cv::Point2f ip1, cv::Point2f ip2){
-		this->p1 = ip1;
-		this->p2 = ip2;
-	}
-	match(){
-		this->p1 = cv::Point2f(0,0);
-		this->p2 = cv::Point2f(0,0);
-	}
-	bool operator== (const match& right) const {
-		return std::tie(this->p1, this->p2)==std::tie(right.p1, right.p2);
-	}
-	bool operator< (const match& right) const {
-		return this->p1.x < right.p1.x || this->p1.y < right.p1.y;
-	}
-};
-
-struct angle{
-	double cos;
-	double sin;
-	match corr_matches[2];
-	angle(double cos, double sin, match m1, match m2){
-		this->cos = cos;
-		this->sin = sin;
-		this->corr_matches[0] = m1;
-		this->corr_matches[1] = m2;
-	}
-};
 
 string folder_path = "/home/mango/fpr/";
 string ext         = ".jpg";
@@ -149,8 +88,6 @@ void update(int, void *){
 
 
 	vector<angle> angles;
-	vector<vector<match>> angles_corresp_matches;
-
 	float len_match = (float) getTrackbarPos("length match", "match") / 1000;
 
 	set<match> set(matches.begin(), matches.end());
@@ -162,9 +99,9 @@ void update(int, void *){
 			match match_2 = matches[k];
 
 			double vec_1 [2] = {match_1.p1.x - match_2.p1.x,
-									match_1.p1.y - match_2.p1.y};
+								match_1.p1.y - match_2.p1.y};
 			double vec_2 [2] = {match_1.p2.x - match_2.p2.x,
-									match_1.p2.y - match_2.p2.y};
+								match_1.p2.y - match_2.p2.y};
 
 			double length_1 = sqrt(pow(vec_1[0],2) + pow(vec_1[1],2));
 			double length_2 = sqrt(pow(vec_2[0],2) + pow(vec_2[1],2));
@@ -180,7 +117,6 @@ void update(int, void *){
 					match_1,
 					match_2
 					));
-				angles_corresp_matches.push_back({match_1, match_2});
 			}
 		}
 	}
@@ -199,13 +135,12 @@ void update(int, void *){
 		for(int k = j+1; k < angles.size(); k++){
 
 			angle angle_2 = angles[k];
-			match match_2[2] = {angles_corresp_matches[k][0], angles_corresp_matches[k][1]};
 
 
 			if (1 - min(angle_1.sin, angle_2.sin) / 
-					max(angle_1.sin, angle_2.sin) >= angle_match &&
+					max(angle_1.sin, angle_2.sin) <= angle_match &&
 				1 - min(angle_1.cos, angle_2.cos) /
-					max(angle_1.cos, angle_2.cos) >= angle_match){
+					max(angle_1.cos, angle_2.cos) <= angle_match){
 
 				count += 1;
 				
