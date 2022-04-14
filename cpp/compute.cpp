@@ -8,7 +8,6 @@
 #include <sys/file.h>
 #include <string.h>
 
-using std::cin;
 using std::cout;
 using std::endl;
 using std::fstream;
