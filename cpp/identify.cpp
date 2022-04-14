@@ -9,6 +9,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/xfeatures2d.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
+#include <string>
 #include <sys/file.h>
 #include <string.h>
 #include <cmath>
@@ -76,9 +77,7 @@ cv::Mat clear = cv::imread(folder_path + "clear" + ext, 0);
 
 void update(int, void *){
 	int finger_1 = getTrackbarPos("finger", "image 1");
-	cout << finger_1 << endl;
 	int number_1 = getTrackbarPos("image", "image 1");
-	cout << number_1 << endl;
 	cv::Mat image_1 = imread(folder_path + "finger-" + to_string(finger_1) + "/" +
 								to_string(number_1) + ext,
 							0);
@@ -87,9 +86,7 @@ void update(int, void *){
 		return;
 
 	int finger_2 = getTrackbarPos("finger", "image 2");
-	cout << finger_2 << endl;
 	int number_2 = getTrackbarPos("image", "image 2");
-	cout << number_2 << endl;
 	cv::Mat image_2 = imread(folder_path + "finger-" + to_string(finger_2) + "/" +
 								to_string(number_2) + ext,
 							0);
@@ -100,39 +97,28 @@ void update(int, void *){
 	if (finger_1 == finger_2 && number_1 == number_2)
 		return;
 
-	image_1 -= (256 - clear);
 	cv::Mat ROI = cv::Mat::ones(cv::Size(image_1.size[0], image_1.size[1]), 0);
+	image_1 = clear - image_1;
+	double maximum;
+	double minimum;
 
-	unsigned char maximum = 0;
-	unsigned char minimum = 255;
-	image_1.forEach<unsigned char>(
-		[&maximum, &minimum](unsigned char &p, const int *position) -> void {
-			if (maximum < p) {
-			maximum = p;
-			}
-			if (minimum > p) {
-			minimum = p;
-			}
-		});
+	minMaxLoc(image_1, &minimum, &maximum, NULL, NULL);
+	cout << "min:" << minimum << "/" << "max:" << maximum << endl;
 
-	int tmp = 255 / (maximum - minimum);
-	image_1 = tmp * image_1 - minimum * tmp;
+	double tmp = 255 / (maximum - minimum);
+	cout << "tmp calculation: " << tmp << endl;
+	image_1 = tmp * (image_1 - minimum);
 
-	image_2 -= (256 - clear);
+	image_2 = clear - image_2;
 	maximum = 0;
-	minimum = 255;
-	image_2.forEach<uchar>(
-		[&maximum, &minimum](uchar &p, const int *position) -> void {
-			if (maximum < p) {
-			maximum = p;
-			}
-			if (minimum > p) {
-			minimum = p;
-			}
-		});
+	minimum = 0;
+
+	minMaxLoc(image_2, &minimum, &maximum, NULL, NULL);
+	cout << "min:" << minimum << ":" << "max:" << maximum << endl;
 
 	tmp = 255 / (maximum - minimum);
-	image_2 = tmp * image_2 - minimum * tmp;
+	cout << "tmp calculation: " << tmp << endl;
+	image_2 = tmp * (image_2 - minimum);
 
 	cv::imshow("image 1", image_1);
 	cv::imshow("image 2", image_2);
@@ -156,7 +142,6 @@ void update(int, void *){
 	for (int i = 0; i < points.size(); i++) {
 		cv::DMatch match_1 = points[i][0];
 		if (match_1.distance < dist_match * points[i][1].distance) {
-			cout << "size:" << matches.size() << "/" << matches.max_size() << endl;
 			matches.push_back({ keypoints_1[match_1.queryIdx].pt,
 								keypoints_2[match_1.trainIdx].pt});
 		}
@@ -165,13 +150,11 @@ void update(int, void *){
 
 	vector<angle> angles;
 	vector<vector<match>> angles_corresp_matches;
-	// cout << angles_corresp_matches.max_size() << endl;
 
 	float len_match = (float) getTrackbarPos("length match", "match") / 1000;
 
 	set<match> set(matches.begin(), matches.end());
     matches.assign(set.begin(), set.end());
-	cout << "size_after_shrink:" << matches.size() << "/" << matches.max_size() << endl;
 
 	for(int j = 0; j < matches.size(); j++){
 		match match_1 = matches[j];
@@ -220,9 +203,9 @@ void update(int, void *){
 
 
 			if (1 - min(angle_1.sin, angle_2.sin) / 
-					max(angle_1.sin, angle_2.sin) <= angle_match &&
+					max(angle_1.sin, angle_2.sin) >= angle_match &&
 				1 - min(angle_1.cos, angle_2.cos) /
-					max(angle_1.cos, angle_2.cos) <= angle_match){
+					max(angle_1.cos, angle_2.cos) >= angle_match){
 
 				count += 1;
 				
@@ -281,6 +264,18 @@ int main(){
 	cv::createTrackbar("min match", "match", NULL, 50, update);
 	cv::createTrackbar("length match", "match", NULL, 1000, update);
 	cv::createTrackbar("angle match", "match", NULL, 1000, update);
+
+	cv::setTrackbarPos("finger", "image 1", 2);
+	cv::setTrackbarPos("finger", "image 2", 2);
+	cv::setTrackbarPos("image", "image 1", 0);
+	cv::setTrackbarPos("image", "image 2", 1);
+	cv::setTrackbarPos("distance match", "match", 75);
+	cv::setTrackbarPos("min match", "match", 5);
+	cv::setTrackbarPos("length match", "match", 50);
+	cv::setTrackbarPos("angle match", "match", 50);
+	
+
+
 
 	update(0, nullptr);
 
