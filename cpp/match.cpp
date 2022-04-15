@@ -75,10 +75,10 @@ bool fingerprint_match(string img_path, string clear_path, string sample_path){
 				for(int k = j+1; k < matches.size(); k++){
 					match match_2 = matches[k];
 
-					double vec_1 [2] = {match_1.p1.x - match_2.p1.x,
-										match_1.p1.y - match_2.p1.y};
-					double vec_2 [2] = {match_1.p2.x - match_2.p2.x,
-										match_1.p2.y - match_2.p2.y};
+					int vec_1 [2] = {match_1.p1.x - match_2.p1.x,
+									 match_1.p1.y - match_2.p1.y};
+					int vec_2 [2] = {match_1.p2.x - match_2.p2.x,
+									 match_1.p2.y - match_2.p2.y};
 
 					double length_1 = sqrt(pow(vec_1[0],2) + pow(vec_1[1],2));
 					double length_2 = sqrt(pow(vec_2[0],2) + pow(vec_2[1],2));

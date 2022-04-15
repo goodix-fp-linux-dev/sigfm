@@ -19,7 +19,6 @@
 #include <sys/file.h>
 #include <string.h>
 
-
 using std::min; using std::max;
 using std::filesystem::recursive_directory_iterator;
 using std::fstream;
