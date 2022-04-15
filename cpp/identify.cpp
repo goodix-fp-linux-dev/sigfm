@@ -37,7 +37,7 @@ void update(int, void *){
 		return;
 
 	cv::Mat ROI = cv::Mat::ones(cv::Size(image_1.size[0], image_1.size[1]), 0);
-	image_1 = clear - image_1;
+	image_1 = 256 - (clear - image_1);
 	double maximum;
 	double minimum;
 
@@ -48,7 +48,7 @@ void update(int, void *){
 	cout << "tmp calculation: " << tmp << endl;
 	image_1 = tmp * (image_1 - minimum);
 
-	image_2 = clear - image_2;
+	image_2 = 256 - (clear - image_2);
 	maximum = 0;
 	minimum = 0;
 
