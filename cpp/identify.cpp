@@ -1,5 +1,6 @@
+#include "opencv2/imgcodecs.hpp"
 #include "structs.hpp"
-
+using namespace structs;
 // int finger1=0;
 // int finger2=0;
 // int img1=0;
@@ -17,18 +18,20 @@ cv::Mat clear = cv::imread(folder_path + "clear" + ext, 0);
 void update(int, void *){
 	int finger_1 = getTrackbarPos("finger", "image 1");
 	int number_1 = getTrackbarPos("image", "image 1");
-	cv::Mat image_1 = imread(folder_path + "finger-" + to_string(finger_1) + "/" +
-								to_string(number_1) + ext,
-							0);
+	cv::Mat image_1 = imread(folder_path + "finger-" +
+							to_string(finger_1) + "/" +
+							to_string(number_1) + ext,
+							cv::IMREAD_GRAYSCALE);
 
 	if (image_1.empty())
 		return;
 
 	int finger_2 = getTrackbarPos("finger", "image 2");
 	int number_2 = getTrackbarPos("image", "image 2");
-	cv::Mat image_2 = imread(folder_path + "finger-" + to_string(finger_2) + "/" +
-								to_string(number_2) + ext,
-							0);
+	cv::Mat image_2 = imread(folder_path + "finger-" + 
+							to_string(finger_2) + "/" +
+							to_string(number_2) + ext,
+							cv::IMREAD_GRAYSCALE);
 
 	if (image_2.empty())
 		return;
@@ -42,10 +45,8 @@ void update(int, void *){
 	double minimum;
 
 	minMaxLoc(image_1, &minimum, &maximum, NULL, NULL);
-	cout << "min:" << minimum << "/" << "max:" << maximum << endl;
 
 	double tmp = 255 / (maximum - minimum);
-	cout << "tmp calculation: " << tmp << endl;
 	image_1 = tmp * (image_1 - minimum);
 
 	image_2 = 256 - (clear - image_2);
@@ -53,10 +54,8 @@ void update(int, void *){
 	minimum = 0;
 
 	minMaxLoc(image_2, &minimum, &maximum, NULL, NULL);
-	cout << "min:" << minimum << ":" << "max:" << maximum << endl;
 
 	tmp = 255 / (maximum - minimum);
-	cout << "tmp calculation: " << tmp << endl;
 	image_2 = tmp * (image_2 - minimum);
 
 	cv::imshow("image 1", image_1);
@@ -98,10 +97,10 @@ void update(int, void *){
 		for(int k = j+1; k < matches.size(); k++){
 			match match_2 = matches[k];
 
-			double vec_1 [2] = {match_1.p1.x - match_2.p1.x,
-								match_1.p1.y - match_2.p1.y};
-			double vec_2 [2] = {match_1.p2.x - match_2.p2.x,
-								match_1.p2.y - match_2.p2.y};
+			int vec_1 [2] = {match_1.p1.x - match_2.p1.x,
+							 match_1.p1.y - match_2.p1.y};
+			int vec_2 [2] = {match_1.p2.x - match_2.p2.x,
+							 match_1.p2.y - match_2.p2.y};
 
 			double length_1 = sqrt(pow(vec_1[0],2) + pow(vec_1[1],2));
 			double length_2 = sqrt(pow(vec_2[0],2) + pow(vec_2[1],2));
@@ -129,10 +128,11 @@ void update(int, void *){
 	for(int j = 0; j < angles.size(); j++){
 		count = 0;
 		angle angle_1 = angles[j];
-		// match match_1[2] = {angles_corresp_matches[j][0], angles_corresp_matches[j][1]};
 		vector<match> true_matches;
 
-		for(int k = j+1; k < angles.size(); k++){
+		for(int k = 0; k < angles.size(); k++){
+			if(j==k)
+				continue;
 
 			angle angle_2 = angles[k];
 
@@ -169,14 +169,14 @@ void update(int, void *){
 	for (int i = 0; i < matches.size(); i+=2){
 		match match_ = matches[i];
 		cv::Scalar color;
-		bool innocence_1 = true, innocence_2 = true;
+		bool innocence_1 = true;
 		for(match waround : max_true_matches){
 			if(waround == match_){
-				innocence_2 = false;
+				innocence_1 = false;
 				break;
 			}
 		}
-		color = innocence_1 && innocence_2 ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
+		color = innocence_1 ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
 
 		cv::line(image_3, match_.p1, cv::Point2f(match_.p2.x+image_1.size().width, match_.p2.y), color, 1, cv::LINE_AA);
 		cv::circle(image_3, match_.p1, 3, color, 1, cv::LINE_AA);

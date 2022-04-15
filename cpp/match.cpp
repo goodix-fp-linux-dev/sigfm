@@ -1,5 +1,5 @@
 #include "structs.hpp"
-
+using namespace structs;
  
 
 double DISTANCE_MATCH = 0.75;
