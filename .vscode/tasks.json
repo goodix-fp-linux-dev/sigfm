@@ -3,7 +3,7 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"label": "C/C++: clang++ build active file",
+			"label": "C++ Build",
 			"command": "/usr/bin/clang++",
 			"args": [
 				"-fdiagnostics-color=always",
@@ -26,8 +26,7 @@
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			},
-			"detail": "compiler: /usr/bin/clang++"
+			}
 		}
 	]
 }
