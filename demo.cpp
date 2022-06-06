@@ -58,15 +58,17 @@ void update(int, void *)
 		(double)cv::getTrackbarPos("distance match", "match") / 100;
 
 	std::vector<std::vector<cv::DMatch>> matches_in;
-	cv::BFMatcher::create()->knnMatch(
-		descriptors_1, descriptors_2, matches_in, 2);
+	cv::BFMatcher::create()->knnMatch(descriptors_1, descriptors_2,
+									  matches_in, 2);
 
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> matches_out;
 	for (auto match_in : matches_in)
 		if (match_in[0].distance < distance_match * match_in[1].distance)
 		{
-			auto match_out = std::make_pair(keypoints_1[match_in[0].queryIdx].pt,
-											keypoints_2[match_in[0].trainIdx].pt);
+			auto match_out = std::make_pair(
+				keypoints_1[match_in[0].queryIdx].pt,
+				keypoints_2[match_in[0].trainIdx].pt);
+
 			auto end = matches_out.end();
 			if (std::find(matches_out.begin(), end, match_out) == end)
 				matches_out.push_back(match_out);
@@ -77,8 +79,9 @@ void update(int, void *)
 	auto length_match =
 		(double)cv::getTrackbarPos("length match", "match") / 1000;
 
-	std::vector<
-		std::pair<double, std::pair<std::pair<cv::Point2f, cv::Point2f>, std::pair<cv::Point2f, cv::Point2f>>>>
+	std::vector<std::pair<double, std::pair<
+									  std::pair<cv::Point2f, cv::Point2f>,
+									  std::pair<cv::Point2f, cv::Point2f>>>>
 		angles;
 	auto length = matches_out.size();
 	for (auto i = 0; i < length; i++)
@@ -88,13 +91,17 @@ void update(int, void *)
 		{
 			auto match_2 = matches_out[j];
 
-			auto vector_1 = std::make_pair(match_1.first.x - match_2.first.x,
-										   match_1.first.y - match_2.first.y);
-			auto vector_2 = std::make_pair(match_1.second.x - match_2.second.x,
-										   match_1.second.y - match_2.second.y);
+			auto vector_1 = std::make_pair(
+				match_1.first.x - match_2.first.x,
+				match_1.first.y - match_2.first.y);
+			auto vector_2 = std::make_pair(
+				match_1.second.x - match_2.second.x,
+				match_1.second.y - match_2.second.y);
 
-			auto length_1 = sqrt(pow(vector_1.first, 2) + pow(vector_1.second, 2));
-			auto length_2 = sqrt(pow(vector_2.first, 2) + pow(vector_2.second, 2));
+			auto length_1 = sqrt(pow(vector_1.first, 2) +
+								 pow(vector_1.second, 2));
+			auto length_2 = sqrt(pow(vector_2.first, 2) +
+								 pow(vector_2.second, 2));
 
 			if (length_1 > length_2)
 			{
@@ -104,22 +111,22 @@ void update(int, void *)
 			}
 
 			if (1 - length_1 / length_2 < length_match)
-			{
 				angles.push_back(std::make_pair(
 					atan2(vector_1.first * vector_2.second -
 							  vector_1.second * vector_2.first,
 						  vector_1.first * vector_2.first +
 							  vector_1.second * vector_2.second),
 					std::make_pair(match_1, match_2)));
-			}
 		}
 	}
 
 	std::cout << "Count 2: " << angles.size() << std::endl; // TODO Remove
 
 	auto max_count = 0;
-	auto angle_match = (double)cv::getTrackbarPos("angle match", "match") * M_PI / 180;
-	std::vector<std::pair<cv::Point2f, cv::Point2f>> true_matches, max_true_matches;
+	auto angle_match =
+		(double)cv::getTrackbarPos("angle match", "match") * M_PI / 180;
+	std::vector<std::pair<cv::Point2f, cv::Point2f>> true_matches,
+		max_true_matches;
 
 	length = angles.size();
 	for (auto i = 0; i < length; i++)
@@ -152,11 +159,14 @@ void update(int, void *)
 
 	std::cout << max_count << std::endl; // TODO Remove
 	for (auto match : max_true_matches)
-		std::cout << "[(" << match.first.x << ", " << match.first.y << "), (" << match.second.x << ", " << match.first.y << ")]" << std::endl; // TODO Remove
+		std::cout << "[(" << match.first.x << ", " << match.first.y << "), ("
+				  << match.second.x << ", " << match.first.y << ")]"
+				  << std::endl; // TODO Remove
 
 	cv::Mat image_3;
 	cv::hconcat(image_1, image_2, image_3);
 	cv::cvtColor(image_3, image_3, cv::COLOR_GRAY2RGB);
+
 	for (auto match : matches_out)
 	{
 		cv::Scalar color;
@@ -178,7 +188,8 @@ void update(int, void *)
 	else
 		color = cv::Scalar(0, 0, 255);
 
-	cv::rectangle(image_3, cv::Point(0, 0), cv::Point(image_3.cols - 1, image_3.rows - 1), color, 1);
+	cv::rectangle(image_3, cv::Point(0, 0),
+				  cv::Point(image_3.cols - 1, image_3.rows - 1), color, 1);
 
 	cv::imshow("match", image_3);
 }
@@ -186,10 +197,7 @@ void update(int, void *)
 int main()
 {
 	if (clear.data == NULL)
-	{
-		std::cerr << "ValueError" << std::endl;
 		return -1;
-	}
 
 	cv::namedWindow("image 1", cv::WINDOW_NORMAL);
 	cv::namedWindow("image 2", cv::WINDOW_NORMAL);
@@ -214,10 +222,8 @@ int main()
 	update(0, nullptr);
 
 	while (true)
-	{
 		if ((cv::waitKey() & 0xff) == 27)
 			break;
-	}
 
 	cv::destroyAllWindows();
 	return 0;
