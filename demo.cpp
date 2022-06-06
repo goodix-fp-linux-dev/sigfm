@@ -17,6 +17,13 @@ void update(int, void *)
 {
 	auto finger_1 = cv::getTrackbarPos("finger", "image 1");
 	auto number_1 = cv::getTrackbarPos("image", "image 1");
+
+	auto finger_2 = cv::getTrackbarPos("finger", "image 2");
+	auto number_2 = cv::getTrackbarPos("image", "image 2");
+
+	if (finger_1 == finger_2 && number_1 == number_2)
+		return;
+
 	auto image_1 = cv::imread(folder_path + "finger-" +
 								  std::to_string(finger_1) + "/" +
 								  std::to_string(number_1) + ext,
@@ -25,17 +32,12 @@ void update(int, void *)
 	if (image_1.data == NULL)
 		return;
 
-	auto finger_2 = cv::getTrackbarPos("finger", "image 2");
-	auto number_2 = cv::getTrackbarPos("image", "image 2");
 	auto image_2 = cv::imread(folder_path + "finger-" +
 								  std::to_string(finger_2) + "/" +
 								  std::to_string(number_2) + ext,
 							  cv::IMREAD_GRAYSCALE);
 
 	if (image_2.data == NULL)
-		return;
-
-	if (finger_1 == finger_2 && number_1 == number_2)
 		return;
 
 	image_1 = 256 - clear + image_1;
