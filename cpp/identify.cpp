@@ -1,192 +1,196 @@
-#include "opencv2/imgcodecs.hpp"
-#include "structs.hpp"
-using namespace structs;
-// int finger1=0;
-// int finger2=0;
-// int img1=0;
-// int img2=1;
-// int dmatch=75;
-// int mmatch=5;
-// int lmatch=50;
-// int amatch=50;
+#include <iostream>
+#include <opencv2/features2d.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <ostream>
+#include <string>
 
-string folder_path = "/home/mango/fpr/";
-string ext         = ".jpg";
+std::string folder_path = "/home/mpi3d/Documents/sigfm-cpp/fingerprints/";
+std::string ext = ".png";
 
-cv::Mat clear = cv::imread(folder_path + "clear" + ext, 0);
+auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);
 
-void update(int, void *){
-	int finger_1 = getTrackbarPos("finger", "image 1");
-	int number_1 = getTrackbarPos("image", "image 1");
-	cv::Mat image_1 = imread(folder_path + "finger-" +
-							to_string(finger_1) + "/" +
-							to_string(number_1) + ext,
-							cv::IMREAD_GRAYSCALE);
+// TODO 12 bit depth
 
-	if (image_1.empty())
+void update(int, void *)
+{
+	auto finger_1 = cv::getTrackbarPos("finger", "image 1");
+	auto number_1 = cv::getTrackbarPos("image", "image 1");
+	auto image_1 = cv::imread(folder_path + "finger-" +
+								  std::to_string(finger_1) + "/" +
+								  std::to_string(number_1) + ext,
+							  cv::IMREAD_GRAYSCALE);
+
+	if (image_1.data == NULL)
 		return;
 
-	int finger_2 = getTrackbarPos("finger", "image 2");
-	int number_2 = getTrackbarPos("image", "image 2");
-	cv::Mat image_2 = imread(folder_path + "finger-" + 
-							to_string(finger_2) + "/" +
-							to_string(number_2) + ext,
-							cv::IMREAD_GRAYSCALE);
+	auto finger_2 = cv::getTrackbarPos("finger", "image 2");
+	auto number_2 = cv::getTrackbarPos("image", "image 2");
+	auto image_2 = cv::imread(folder_path + "finger-" +
+								  std::to_string(finger_2) + "/" +
+								  std::to_string(number_2) + ext,
+							  cv::IMREAD_GRAYSCALE);
 
-	if (image_2.empty())
+	if (image_2.data == NULL)
 		return;
 
 	if (finger_1 == finger_2 && number_1 == number_2)
 		return;
 
-	cv::Mat ROI = cv::Mat::ones(cv::Size(image_1.size[0], image_1.size[1]), 0);
-	image_1 = 256 - (clear - image_1);
-	double maximum;
-	double minimum;
+	image_1 = 256 - clear + image_1;
+	cv::normalize(image_1, image_1, 255, 0, cv::NORM_MINMAX, CV_8U);
 
-	minMaxLoc(image_1, &minimum, &maximum, NULL, NULL);
-
-	double tmp = 255 / (maximum - minimum);
-	image_1 = tmp * (image_1 - minimum);
-
-	image_2 = 256 - (clear - image_2);
-	maximum = 0;
-	minimum = 0;
-
-	minMaxLoc(image_2, &minimum, &maximum, NULL, NULL);
-
-	tmp = 255 / (maximum - minimum);
-	image_2 = tmp * (image_2 - minimum);
+	image_2 = 256 - clear + image_2;
+	cv::normalize(image_2, image_2, 255, 0, cv::NORM_MINMAX, CV_8U);
 
 	cv::imshow("image 1", image_1);
 	cv::imshow("image 2", image_2);
 
-	vector<cv::KeyPoint> keypoints_1;
-	vector<cv::KeyPoint> keypoints_2;
-	cv::Mat descriptors_1;
-	cv::Mat descriptors_2;
+	auto sift = cv::SIFT::create();
 
-	cv::Ptr<cv::SIFT> sift = cv::SIFT::create();
+	std::vector<cv::KeyPoint> keypoints_1, keypoints_2;
+	cv::Mat descriptors_1, descriptors_2;
+	sift->detectAndCompute(image_1, cv::noArray(), keypoints_1, descriptors_1);
+	sift->detectAndCompute(image_2, cv::noArray(), keypoints_2, descriptors_2);
 
-	sift->detectAndCompute(image_1, ROI, keypoints_1, descriptors_1);
-	sift->detectAndCompute(image_2, ROI, keypoints_2, descriptors_2);
+	auto distance_match =
+		(double)cv::getTrackbarPos("distance match", "match") / 100;
 
-	float dist_match = (float)getTrackbarPos("distance match", "match") / 100;
+	std::vector<std::vector<cv::DMatch>> matches_in;
+	cv::BFMatcher::create()->knnMatch(
+		descriptors_1, descriptors_2, matches_in, 2);
 
-	vector<vector<cv::DMatch>> points;
-	cv::BFMatcher::create()->knnMatch(descriptors_1, descriptors_2, points, 2);
-
-	vector<match> matches;
-	for (int i = 0; i < points.size(); i++) {
-		cv::DMatch match_1 = points[i][0];
-		if (match_1.distance < dist_match * points[i][1].distance) {
-			matches.push_back({ keypoints_1[match_1.queryIdx].pt,
-								keypoints_2[match_1.trainIdx].pt});
+	std::vector<std::pair<cv::Point2f, cv::Point2f>> matches_out;
+	for (auto match_in : matches_in)
+		if (match_in[0].distance < distance_match * match_in[1].distance)
+		{
+			auto match_out = std::make_pair(keypoints_1[match_in[0].queryIdx].pt,
+											keypoints_2[match_in[0].trainIdx].pt);
+			auto end = matches_out.end();
+			if (std::find(matches_out.begin(), end, match_out) == end)
+				matches_out.push_back(match_out);
 		}
-	}
 
+	std::cout << "Count 1: " << matches_out.size() << std::endl; // TODO Remove
 
-	vector<angle> angles;
-	float len_match = (float) getTrackbarPos("length match", "match") / 1000;
+	auto length_match =
+		(double)cv::getTrackbarPos("length match", "match") / 1000;
 
-	set<match> set(matches.begin(), matches.end());
-    matches.assign(set.begin(), set.end());
+	std::vector<
+		std::pair<double, std::pair<std::pair<cv::Point2f, cv::Point2f>, std::pair<cv::Point2f, cv::Point2f>>>>
+		angles;
+	auto length = matches_out.size();
+	for (auto i = 0; i < length; i++)
+	{
+		auto match_1 = matches_out[i];
+		for (auto j = i + 1; j < length; j++)
+		{
+			auto match_2 = matches_out[j];
 
-	for(int j = 0; j < matches.size(); j++){
-		match match_1 = matches[j];
-		for(int k = j+1; k < matches.size(); k++){
-			match match_2 = matches[k];
+			auto vector_1 = std::make_pair(match_1.first.x - match_2.first.x,
+										   match_1.first.y - match_2.first.y);
+			auto vector_2 = std::make_pair(match_1.second.x - match_2.second.x,
+										   match_1.second.y - match_2.second.y);
 
-			int vec_1 [2] = {match_1.p1.x - match_2.p1.x,
-							 match_1.p1.y - match_2.p1.y};
-			int vec_2 [2] = {match_1.p2.x - match_2.p2.x,
-							 match_1.p2.y - match_2.p2.y};
+			auto length_1 = sqrt(pow(vector_1.first, 2) + pow(vector_1.second, 2));
+			auto length_2 = sqrt(pow(vector_2.first, 2) + pow(vector_2.second, 2));
 
-			double length_1 = sqrt(pow(vec_1[0],2) + pow(vec_1[1],2));
-			double length_2 = sqrt(pow(vec_2[0],2) + pow(vec_2[1],2));
+			if (length_1 > length_2)
+			{
+				auto tmp = length_1;
+				length_1 = length_2;
+				length_2 = tmp;
+			}
 
-			if (1 - min(length_1, length_2) / 
-					max(length_1, length_2) <= len_match){
-	
-				double product = length_1 * length_2;
-				double vec [2] = {};
-				angles.push_back(angle(
-					M_PI / 2 + asin((vec_1[0] * vec_2[0] + vec_1[1] * vec_2[1]) / product),
-					acos((vec_1[0] * vec_2[1] - vec_1[1] * vec_2[0]) / product),
-					match_1,
-					match_2
-					));
+			if (1 - length_1 / length_2 < length_match)
+			{
+				angles.push_back(std::make_pair(
+					atan2(vector_1.first * vector_2.second -
+							  vector_1.second * vector_2.first,
+						  vector_1.first * vector_2.first +
+							  vector_1.second * vector_2.second),
+					std::make_pair(match_1, match_2)));
 			}
 		}
 	}
 
-	int count = 0;
-	int max_count = 0;
-	float angle_match = (float) getTrackbarPos("angle match", "match") / 1000;
-	vector<match> max_true_matches;
+	std::cout << "Count 2: " << angles.size() << std::endl; // TODO Remove
 
-	for(int j = 0; j < angles.size(); j++){
-		count = 0;
-		angle angle_1 = angles[j];
-		vector<match> true_matches;
+	auto max_count = 0;
+	auto angle_match = (double)cv::getTrackbarPos("angle match", "match") * M_PI / 180;
+	std::vector<std::pair<cv::Point2f, cv::Point2f>> true_matches, max_true_matches;
 
-		for(int k = 0; k < angles.size(); k++){
-			if(j==k)
+	length = angles.size();
+	for (auto i = 0; i < length; i++)
+	{
+		auto count = 0;
+		auto angle_1 = angles[i];
+		true_matches = {angle_1.second.first, angle_1.second.second};
+
+		for (auto j = 0; j < length; j++)
+		{
+			if (i == j)
 				continue;
 
-			angle angle_2 = angles[k];
+			auto angle_2 = angles[j];
 
-
-			if (1 - min(angle_1.sin, angle_2.sin) / 
-					max(angle_1.sin, angle_2.sin) <= angle_match &&
-				1 - min(angle_1.cos, angle_2.cos) /
-					max(angle_1.cos, angle_2.cos) <= angle_match){
-
-				count += 1;
-				
-				for(match match_ : {angle_1.corr_matches[0], angle_1.corr_matches[1], angle_2.corr_matches[0], angle_2.corr_matches[0]}){
-					bool innocence = true;
-					for(match waround : true_matches){
-						if(waround == match_){
-							innocence = false;
-							break;
-						}
-					}
-					if(innocence){
-						true_matches.push_back(match_);
-					}
-				}
+			auto distance = std::abs(angle_1.first - angle_2.first);
+			if (distance <= angle_match or 2 * M_PI - distance <= angle_match)
+			{
+				count++;
+				true_matches.push_back(angle_2.second.first);
+				true_matches.push_back(angle_2.second.second);
 			}
-			if(count>=max_count){
-				max_count = count;
-				max_true_matches = true_matches;
-			}
+		}
+		if (count > max_count)
+		{
+			max_count = count;
+			max_true_matches = true_matches;
 		}
 	}
 
-	cv::Mat image_3; cv::hconcat(image_1, image_2, image_3);
+	std::cout << max_count << std::endl; // TODO Remove
+	for (auto match : max_true_matches)
+		std::cout << "[(" << match.first.x << ", " << match.first.y << "), (" << match.second.x << ", " << match.first.y << ")]" << std::endl; // TODO Remove
+
+	cv::Mat image_3;
+	cv::hconcat(image_1, image_2, image_3);
 	cv::cvtColor(image_3, image_3, cv::COLOR_GRAY2RGB);
-	for (int i = 0; i < matches.size(); i+=2){
-		match match_ = matches[i];
+	for (auto match : matches_out)
+	{
 		cv::Scalar color;
-		bool innocence_1 = true;
-		for(match waround : max_true_matches){
-			if(waround == match_){
-				innocence_1 = false;
-				break;
-			}
-		}
-		color = innocence_1 ? cv::Scalar(0, 255, 0) : cv::Scalar(0, 0, 255);
+		auto end = max_true_matches.end();
+		if (std::find(max_true_matches.begin(), end, match) != end)
+			color = cv::Scalar(0, 255, 0);
+		else
+			color = cv::Scalar(0, 0, 255);
 
-		cv::line(image_3, match_.p1, cv::Point2f(match_.p2.x+image_1.size().width, match_.p2.y), color, 1, cv::LINE_AA);
-		cv::circle(image_3, match_.p1, 3, color, 1, cv::LINE_AA);
-		cv::circle(image_3, cv::Point2f(match_.p2.x+image_1.size().width, match_.p2.y), 3, color, 1, cv::LINE_AA);
+		match.second.x += image_1.cols;
+		cv::line(image_3, match.first, match.second, color, 1, cv::LINE_AA);
+		cv::circle(image_3, match.first, 3, color, 1, cv::LINE_AA);
+		cv::circle(image_3, match.second, 3, color, 1, cv::LINE_AA);
 	}
-	imshow("match", image_3);
+
+	cv::Scalar color;
+	if (max_count >= cv::getTrackbarPos("min match", "match"))
+		color = cv::Scalar(0, 255, 0);
+	else
+		color = cv::Scalar(0, 0, 255);
+
+	cv::rectangle(image_3, cv::Point(0, 0), cv::Point(image_3.cols - 1, image_3.rows - 1), color, 1);
+
+	cv::imshow("match", image_3);
 }
 
+int main()
+{
+	if (clear.data == NULL)
+	{
+		std::cerr << "ValueError" << std::endl;
+		return -1;
+	}
 
-int main(){
 	cv::namedWindow("image 1", cv::WINDOW_NORMAL);
 	cv::namedWindow("image 2", cv::WINDOW_NORMAL);
 	cv::namedWindow("match", cv::WINDOW_NORMAL);
@@ -198,28 +202,23 @@ int main(){
 	cv::createTrackbar("distance match", "match", NULL, 100, update);
 	cv::createTrackbar("min match", "match", NULL, 50, update);
 	cv::createTrackbar("length match", "match", NULL, 1000, update);
-	cv::createTrackbar("angle match", "match", NULL, 1000, update);
+	cv::createTrackbar("angle match", "match", NULL, 180, update);
 
-	cv::setTrackbarPos("finger", "image 1", 2);
-	cv::setTrackbarPos("finger", "image 2", 2);
 	cv::setTrackbarPos("image", "image 1", 0);
 	cv::setTrackbarPos("image", "image 2", 1);
 	cv::setTrackbarPos("distance match", "match", 75);
 	cv::setTrackbarPos("min match", "match", 5);
-	cv::setTrackbarPos("length match", "match", 50);
-	cv::setTrackbarPos("angle match", "match", 50);
-	
-
-
+	cv::setTrackbarPos("length match", "match", 10);
+	cv::setTrackbarPos("angle match", "match", 2);
 
 	update(0, nullptr);
 
-	while(true){
-		if((cv::waitKey() & 0xff) == 27)
+	while (true)
+	{
+		if ((cv::waitKey() & 0xff) == 27)
 			break;
 	}
 
 	cv::destroyAllWindows();
 	return 0;
-
 }
