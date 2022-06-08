@@ -96,7 +96,7 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 			auto angle_2 = angles[j];
 
 			auto distance = std::abs(angle_1 - angle_2);
-			if (distance <= angle_match or 2 * M_PI - distance <= angle_match)
+			if (distance < angle_match or 2 * M_PI - distance < angle_match)
 				count++;
 		}
 		if (count > max_count)

@@ -138,7 +138,7 @@ void update(int, void *)
 			auto angle_2 = angles[j];
 
 			auto distance = std::abs(angle_1.first - angle_2.first);
-			if (distance <= angle_match or 2 * M_PI - distance <= angle_match)
+			if (distance < angle_match or 2 * M_PI - distance < angle_match)
 			{
 				count++;
 				true_matches.push_back(angle_2.second.first);
@@ -183,7 +183,7 @@ void update(int, void *)
 	}
 
 	cv::Scalar color;
-	if (max_count >= cv::getTrackbarPos("min match", "match"))
+	if (max_count > cv::getTrackbarPos("min match", "match"))
 		color = cv::Scalar(0, 255, 0);
 	else
 		color = cv::Scalar(0, 0, 255);
