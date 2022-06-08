@@ -79,7 +79,7 @@ void update(int, void *)
 	std::cout << "Count 1: " << matches_out.size() << std::endl; // TODO Remove
 
 	auto length_match =
-		(double)cv::getTrackbarPos("length match", "match") / 1000;
+		(double)cv::getTrackbarPos("length match", "match") / 100;
 
 	std::vector<std::pair<double, std::pair<
 									  std::pair<cv::Point2f, cv::Point2f>,
@@ -119,7 +119,7 @@ void update(int, void *)
 
 	auto max_count = 0;
 	auto angle_match =
-		(double)cv::getTrackbarPos("angle match", "match") * M_PI / 180;
+		(double)cv::getTrackbarPos("angle match", "match") / 100;
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> true_matches,
 		max_true_matches;
 
@@ -204,8 +204,8 @@ int main()
 	cv::createTrackbar("image", "image 2", NULL, 99, update);
 	cv::createTrackbar("distance match", "match", NULL, 100, update);
 	cv::createTrackbar("min match", "match", NULL, 50, update);
-	cv::createTrackbar("length match", "match", NULL, 1000, update);
-	cv::createTrackbar("angle match", "match", NULL, 180, update);
+	cv::createTrackbar("length match", "match", NULL, 100, update);
+	cv::createTrackbar("angle match", "match", NULL, 100, update);
 
 	cv::setTrackbarPos("image", "image 1", 0);
 	cv::setTrackbarPos("image", "image 2", 1);
