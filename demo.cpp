@@ -164,17 +164,22 @@ void update(int, void *)
 
 	for (auto match : matches_out)
 	{
-		cv::Scalar color;
 		auto end = max_true_matches.end();
-		if (std::find(max_true_matches.begin(), end, match) != end)
-			color = cv::Scalar(0, 255, 0);
-		else
-			color = cv::Scalar(0, 0, 255);
+		if (std::find(max_true_matches.begin(), end, match) == end)
+		{
+			match.second.x += image_1.cols;
+			cv::line(image_3, match.first, match.second, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+			cv::circle(image_3, match.first, 3, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+			cv::circle(image_3, match.second, 3, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+		}
+	}
 
+	for (auto match : max_true_matches)
+	{
 		match.second.x += image_1.cols;
-		cv::line(image_3, match.first, match.second, color, 1, cv::LINE_AA);
-		cv::circle(image_3, match.first, 3, color, 1, cv::LINE_AA);
-		cv::circle(image_3, match.second, 3, color, 1, cv::LINE_AA);
+		cv::line(image_3, match.first, match.second, cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
+		cv::circle(image_3, match.first, 3, cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
+		cv::circle(image_3, match.second, 3, cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
 	}
 
 	cv::Scalar color;
