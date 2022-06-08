@@ -211,8 +211,8 @@ int main()
 	cv::setTrackbarPos("image", "image 2", 1);
 	cv::setTrackbarPos("distance match", "match", 75);
 	cv::setTrackbarPos("min match", "match", 5);
-	cv::setTrackbarPos("length match", "match", 10);
-	cv::setTrackbarPos("angle match", "match", 2);
+	cv::setTrackbarPos("length match", "match", 50);
+	cv::setTrackbarPos("angle match", "match", 5);
 
 	update(0, nullptr);
 

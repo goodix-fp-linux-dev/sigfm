@@ -13,8 +13,8 @@ auto number = 100;
 auto finger_1 = 0;
 auto finger_2 = 1;
 auto distance_match = 0.75;
-auto length_match = 0.01;
-auto angle_match = 2 * M_PI / 180;
+auto length_match = 0.5;
+auto angle_match = 0.05;
 
 auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);
 
