@@ -72,14 +72,7 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 			auto length_2 = sqrt(pow(vector_2.first, 2) +
 								 pow(vector_2.second, 2));
 
-			if (length_1 > length_2)
-			{
-				auto tmp = length_1;
-				length_1 = length_2;
-				length_2 = tmp;
-			}
-
-			if (1 - length_1 / length_2 < length_match)
+			if (std::abs(length_1 - length_2) < length_match)
 				angles.push_back(atan2(vector_1.first * vector_2.second -
 										   vector_1.second * vector_2.first,
 									   vector_1.first * vector_2.first +
