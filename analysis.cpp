@@ -108,7 +108,7 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 
 int main()
 {
-	if (clear.data == NULL)
+	if (clear.empty())
 		return -1;
 
 	std::vector<int> results;
@@ -124,7 +124,7 @@ int main()
 										  std::to_string(number_1) + ext,
 									  cv::IMREAD_GRAYSCALE);
 
-			if (image_1.data == NULL)
+			if (image_1.empty())
 				return -1;
 
 			auto image_2 = cv::imread(folder_path + "finger-" +
@@ -132,7 +132,7 @@ int main()
 										  std::to_string(number_2) + ext,
 									  cv::IMREAD_GRAYSCALE);
 
-			if (image_2.data == NULL)
+			if (image_2.empty())
 				continue;
 
 			results.push_back(compare(image_1, image_2));

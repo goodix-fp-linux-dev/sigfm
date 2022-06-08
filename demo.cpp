@@ -29,7 +29,7 @@ void update(int, void *)
 								  std::to_string(number_1) + ext,
 							  cv::IMREAD_GRAYSCALE);
 
-	if (image_1.data == NULL)
+	if (image_1.empty())
 		return;
 
 	auto image_2 = cv::imread(folder_path + "finger-" +
@@ -37,7 +37,7 @@ void update(int, void *)
 								  std::to_string(number_2) + ext,
 							  cv::IMREAD_GRAYSCALE);
 
-	if (image_2.data == NULL)
+	if (image_2.empty())
 		return;
 
 	image_1 = 256 - clear + image_1;
@@ -196,7 +196,7 @@ void update(int, void *)
 
 int main()
 {
-	if (clear.data == NULL)
+	if (clear.empty())
 		return -1;
 
 	cv::namedWindow("image 1", cv::WINDOW_NORMAL);
