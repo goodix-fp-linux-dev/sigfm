@@ -56,20 +56,19 @@ void update(int, void *)
 	sift->detectAndCompute(image_1, cv::noArray(), keypoints_1, descriptors_1);
 	sift->detectAndCompute(image_2, cv::noArray(), keypoints_2, descriptors_2);
 
-	auto distance_match =
-		(double)cv::getTrackbarPos("distance match", "match") / 100;
+	auto distance_match = cv::getTrackbarPos("distance match", "match");
 
-	std::vector<std::vector<cv::DMatch>> matches_in;
-	cv::BFMatcher::create()->knnMatch(descriptors_1, descriptors_2,
-									  matches_in, 2);
+	std::vector<cv::DMatch> matches_in;
+	cv::BFMatcher::create(cv::NORM_L2, true)
+		->match(descriptors_1, descriptors_2, matches_in);
 
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> matches_out;
 	for (auto match_in : matches_in)
-		if (match_in[0].distance < distance_match * match_in[1].distance)
+		if (match_in.distance < distance_match)
 		{
 			auto match_out = std::make_pair(
-				keypoints_1[match_in[0].queryIdx].pt,
-				keypoints_2[match_in[0].trainIdx].pt);
+				keypoints_1[match_in.queryIdx].pt,
+				keypoints_2[match_in.trainIdx].pt);
 
 			auto end = matches_out.end();
 			if (std::find(matches_out.begin(), end, match_out) == end)
@@ -207,14 +206,14 @@ int main()
 	cv::createTrackbar("image", "image 1", NULL, 99, update);
 	cv::createTrackbar("finger", "image 2", NULL, 9, update);
 	cv::createTrackbar("image", "image 2", NULL, 99, update);
-	cv::createTrackbar("distance match", "match", NULL, 100, update);
+	cv::createTrackbar("distance match", "match", NULL, 1000, update);
 	cv::createTrackbar("length match", "match", NULL, 100, update);
 	cv::createTrackbar("angle match", "match", NULL, 100, update);
 	cv::createTrackbar("min match", "match", NULL, 50, update);
 
 	cv::setTrackbarPos("image", "image 1", 0);
 	cv::setTrackbarPos("image", "image 2", 1);
-	cv::setTrackbarPos("distance match", "match", 75);
+	cv::setTrackbarPos("distance match", "match", 200);
 	cv::setTrackbarPos("length match", "match", 50);
 	cv::setTrackbarPos("angle match", "match", 5);
 	cv::setTrackbarPos("min match", "match", 5);

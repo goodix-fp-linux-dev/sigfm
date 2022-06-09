@@ -12,7 +12,7 @@ std::string ext = ".png";
 auto number = 100;
 auto finger_1 = 0;
 auto finger_2 = 1;
-auto distance_match = 0.75;
+auto distance_match = 200;
 auto length_match = 0.5;
 auto angle_match = 0.05;
 
@@ -34,17 +34,17 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 	sift->detectAndCompute(image_1, cv::noArray(), keypoints_1, descriptors_1);
 	sift->detectAndCompute(image_2, cv::noArray(), keypoints_2, descriptors_2);
 
-	std::vector<std::vector<cv::DMatch>> matches_in;
-	cv::BFMatcher::create()->knnMatch(descriptors_1, descriptors_2,
-									  matches_in, 2);
+	std::vector<cv::DMatch> matches_in;
+	cv::BFMatcher::create(cv::NORM_L2, true)
+		->match(descriptors_1, descriptors_2, matches_in);
 
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> matches_out;
 	for (auto match_in : matches_in)
-		if (match_in[0].distance < distance_match * match_in[1].distance)
+		if (match_in.distance < distance_match)
 		{
 			auto match_out = std::make_pair(
-				keypoints_1[match_in[0].queryIdx].pt,
-				keypoints_2[match_in[0].trainIdx].pt);
+				keypoints_1[match_in.queryIdx].pt,
+				keypoints_2[match_in.trainIdx].pt);
 
 			auto end = matches_out.end();
 			if (std::find(matches_out.begin(), end, match_out) == end)
