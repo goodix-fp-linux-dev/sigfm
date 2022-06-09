@@ -15,6 +15,7 @@ auto finger_2 = 1;
 auto distance_match = 200;
 auto length_match = 0.5;
 auto angle_match = 0.05;
+auto min_match = 5;
 
 auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);
 
@@ -111,9 +112,11 @@ int main()
 	if (clear.empty())
 		return -1;
 
+	auto matches = 0;
 	std::vector<int> results;
 	for (auto number_1 = 0; number_1 < number; number_1++)
 	{
+		auto good = false;
 		for (auto number_2 = 0; number_2 < number; number_2++)
 		{
 			if (finger_1 == finger_2 && number_1 == number_2)
@@ -135,7 +138,14 @@ int main()
 			if (image_2.empty())
 				continue;
 
-			results.push_back(compare(image_1, image_2));
+			auto result = compare(image_1, image_2);
+			if (result > min_match && !good)
+			{
+				good = true;
+				matches++;
+			}
+
+			results.push_back(result);
 		}
 	}
 
@@ -146,4 +156,5 @@ int main()
 	std::cout << "Mean: " << (double)std::reduce(begin, end) / count << std::endl;
 	std::cout << "Max: " << *std::max_element(begin, end) << std::endl;
 	std::cout << "Min: " << *std::min_element(begin, end) << std::endl;
+	std::cout << "Match: " << matches << "/" << number << std::endl;
 }
