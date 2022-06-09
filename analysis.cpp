@@ -143,7 +143,7 @@ int main()
 	auto begin = results.begin();
 	auto end = results.end();
 	std::cout << "Count: " << count << std::endl;
-	std::cout << "Mean: " << std::reduce(begin, end) / count << std::endl;
+	std::cout << "Mean: " << (double)std::reduce(begin, end) / count << std::endl;
 	std::cout << "Max: " << *std::max_element(begin, end) << std::endl;
 	std::cout << "Min: " << *std::min_element(begin, end) << std::endl;
 }
