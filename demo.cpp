@@ -75,8 +75,6 @@ void update(int, void *)
 				matches_out.push_back(match_out);
 		}
 
-	std::cout << "Count 1: " << matches_out.size() << std::endl; // TODO Remove
-
 	auto length_match =
 		(double)cv::getTrackbarPos("length match", "match") / 100;
 
@@ -114,8 +112,6 @@ void update(int, void *)
 		}
 	}
 
-	std::cout << "Count 2: " << angles.size() << std::endl; // TODO Remove
-
 	auto max_count = 0;
 	auto angle_match =
 		(double)cv::getTrackbarPos("angle match", "match") / 100;
@@ -150,12 +146,6 @@ void update(int, void *)
 			max_true_matches = true_matches;
 		}
 	}
-
-	std::cout << max_count << std::endl; // TODO Remove
-	for (auto match : max_true_matches)
-		std::cout << "[(" << match.first.x << ", " << match.first.y << "), ("
-				  << match.second.x << ", " << match.first.y << ")]"
-				  << std::endl; // TODO Remove
 
 	cv::Mat image_3;
 	cv::hconcat(image_1, image_2, image_3);
