@@ -127,7 +127,7 @@ int main()
 										  std::to_string(number_1) + ext,
 									  cv::IMREAD_GRAYSCALE);
 			if (image_1.empty())
-				return -1;
+				continue;
 
 			auto image_2 = cv::imread(folder_path + "finger-" +
 										  std::to_string(finger_2) + "/" +
@@ -155,4 +155,6 @@ int main()
 	std::cout << "Max: " << *std::max_element(begin, end) << std::endl;
 	std::cout << "Min: " << *std::min_element(begin, end) << std::endl;
 	std::cout << "Match: " << matches << "/" << number << std::endl;
+
+	return 0;
 }
