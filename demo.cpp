@@ -152,12 +152,19 @@ void update(int, void *)
 	cv::hconcat(image_1, image_2, image_3);
 	cv::cvtColor(image_3, image_3, cv::COLOR_GRAY2RGB);
 
+	auto size_factor = (double)cv::getTrackbarPos("size factor", "match") / 10;
+	if (size_factor == 0)
+		size_factor = 1;
+	cv::resize(image_3, image_3, cv::Size(), size_factor, size_factor);
+
 	for (auto match : matches_out)
 	{
 		auto end = max_true_matches.end();
 		if (std::find(max_true_matches.begin(), end, match) == end)
 		{
 			match.second.x += image_1.cols;
+			match.first *= size_factor;
+			match.second *= size_factor;
 			cv::line(image_3, match.first, match.second,
 					 cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
 			cv::circle(image_3, match.first, 3,
@@ -170,6 +177,8 @@ void update(int, void *)
 	for (auto match : max_true_matches)
 	{
 		match.second.x += image_1.cols;
+		match.first *= size_factor;
+		match.second *= size_factor;
 		cv::line(image_3, match.first, match.second,
 				 cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
 		cv::circle(image_3, match.first, 3,
@@ -182,6 +191,10 @@ void update(int, void *)
 	{
 		angle.first.second.x += image_1.cols;
 		angle.second.second.x += image_1.cols;
+		angle.first.first *= size_factor;
+		angle.first.second *= size_factor;
+		angle.second.first *= size_factor;
+		angle.second.second *= size_factor;
 		cv::arrowedLine(image_3, angle.first.first, angle.second.first,
 						cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
 		cv::arrowedLine(image_3, angle.first.second, angle.second.second,
@@ -217,6 +230,7 @@ int main()
 	cv::createTrackbar("length match", "match", NULL, 100, update);
 	cv::createTrackbar("angle match", "match", NULL, 100, update);
 	cv::createTrackbar("min match", "match", NULL, 100, update);
+	cv::createTrackbar("size factor", "match", NULL, 100, update);
 
 	cv::setTrackbarPos("image", "image 1", 0);
 	cv::setTrackbarPos("image", "image 2", 1);
@@ -224,6 +238,7 @@ int main()
 	cv::setTrackbarPos("length match", "match", 50);
 	cv::setTrackbarPos("angle match", "match", 5);
 	cv::setTrackbarPos("min match", "match", 25);
+	cv::setTrackbarPos("size factor", "match", 10);
 
 	update(0, nullptr);
 
