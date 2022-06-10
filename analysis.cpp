@@ -2,10 +2,6 @@
 #include <numeric>
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
-#include <opencv2/imgcodecs.hpp>
-#include <opencv2/imgproc.hpp>
-#include <ostream>
-#include <string>
 
 std::string folder_path = "/home/mpi3d/Documents/sigfm-cpp/fingerprints/";
 std::string ext = ".png";
