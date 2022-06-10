@@ -28,7 +28,6 @@ void update(int, void *)
 								  std::to_string(finger_1) + "/" +
 								  std::to_string(number_1) + ext,
 							  cv::IMREAD_GRAYSCALE);
-
 	if (image_1.empty())
 		return;
 
@@ -36,7 +35,6 @@ void update(int, void *)
 								  std::to_string(finger_2) + "/" +
 								  std::to_string(number_2) + ext,
 							  cv::IMREAD_GRAYSCALE);
-
 	if (image_2.empty())
 		return;
 
@@ -50,18 +48,16 @@ void update(int, void *)
 	cv::imshow("image 2", image_2);
 
 	auto sift = cv::SIFT::create();
-
 	std::vector<cv::KeyPoint> keypoints_1, keypoints_2;
 	cv::Mat descriptors_1, descriptors_2;
 	sift->detectAndCompute(image_1, cv::noArray(), keypoints_1, descriptors_1);
 	sift->detectAndCompute(image_2, cv::noArray(), keypoints_2, descriptors_2);
 
-	auto distance_match = cv::getTrackbarPos("distance match", "match");
-
 	std::vector<cv::DMatch> matches_in;
 	cv::BFMatcher::create(cv::NORM_L2, true)
 		->match(descriptors_1, descriptors_2, matches_in);
 
+	auto distance_match = cv::getTrackbarPos("distance match", "match");
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> matches_out;
 	for (auto match_in : matches_in)
 		if (match_in.distance < distance_match)
@@ -75,17 +71,17 @@ void update(int, void *)
 				matches_out.push_back(match_out);
 		}
 
+	auto length = matches_out.size();
 	auto length_match =
 		(double)cv::getTrackbarPos("length match", "match") / 100;
-
 	std::vector<std::pair<double, std::pair<
 									  std::pair<cv::Point2f, cv::Point2f>,
 									  std::pair<cv::Point2f, cv::Point2f>>>>
 		angles;
-	auto length = matches_out.size();
 	for (auto i = 0; i < length; i++)
 	{
 		auto match_1 = matches_out[i];
+
 		for (auto j = i + 1; j < length; j++)
 		{
 			auto match_2 = matches_out[j];
@@ -112,17 +108,17 @@ void update(int, void *)
 		}
 	}
 
-	auto max_count = 0;
+	length = angles.size();
 	auto angle_match =
 		(double)cv::getTrackbarPos("angle match", "match") / 100;
+	auto max_count = 0;
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> true_matches,
 		max_true_matches;
-
-	length = angles.size();
 	for (auto i = 0; i < length; i++)
 	{
-		auto count = 0;
 		auto angle_1 = angles[i];
+
+		auto count = 0;
 		true_matches = {angle_1.second.first, angle_1.second.second};
 
 		for (auto j = 0; j < length; j++)
@@ -140,6 +136,7 @@ void update(int, void *)
 				true_matches.push_back(angle_2.second.second);
 			}
 		}
+
 		if (count > max_count)
 		{
 			max_count = count;
@@ -157,18 +154,24 @@ void update(int, void *)
 		if (std::find(max_true_matches.begin(), end, match) == end)
 		{
 			match.second.x += image_1.cols;
-			cv::line(image_3, match.first, match.second, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
-			cv::circle(image_3, match.first, 3, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
-			cv::circle(image_3, match.second, 3, cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+			cv::line(image_3, match.first, match.second,
+					 cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+			cv::circle(image_3, match.first, 3,
+					   cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
+			cv::circle(image_3, match.second, 3,
+					   cv::Scalar(0, 0, 255), 1, cv::LINE_AA);
 		}
 	}
 
 	for (auto match : max_true_matches)
 	{
 		match.second.x += image_1.cols;
-		cv::line(image_3, match.first, match.second, cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
-		cv::circle(image_3, match.first, 3, cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
-		cv::circle(image_3, match.second, 3, cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
+		cv::line(image_3, match.first, match.second,
+				 cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
+		cv::circle(image_3, match.first, 3,
+				   cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
+		cv::circle(image_3, match.second, 3,
+				   cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
 	}
 
 	cv::Scalar color;
@@ -215,5 +218,6 @@ int main()
 			break;
 
 	cv::destroyAllWindows();
+
 	return 0;
 }

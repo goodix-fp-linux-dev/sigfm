@@ -9,6 +9,7 @@
 
 std::string folder_path = "/home/mpi3d/Documents/sigfm-cpp/fingerprints/";
 std::string ext = ".png";
+
 auto number = 100;
 auto finger_1 = 0;
 auto finger_2 = 1;
@@ -21,7 +22,6 @@ auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);
 
 int compare(cv::Mat image_1, cv::Mat image_2)
 {
-
 	image_1 = 256 - clear + image_1;
 	cv::normalize(image_1, image_1, 255, 0, cv::NORM_MINMAX, CV_8U);
 
@@ -29,7 +29,6 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 	cv::normalize(image_2, image_2, 255, 0, cv::NORM_MINMAX, CV_8U);
 
 	auto sift = cv::SIFT::create();
-
 	std::vector<cv::KeyPoint> keypoints_1, keypoints_2;
 	cv::Mat descriptors_1, descriptors_2;
 	sift->detectAndCompute(image_1, cv::noArray(), keypoints_1, descriptors_1);
@@ -52,11 +51,12 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 				matches_out.push_back(match_out);
 		}
 
-	std::vector<double> angles;
 	auto length = matches_out.size();
+	std::vector<double> angles;
 	for (auto i = 0; i < length; i++)
 	{
 		auto match_1 = matches_out[i];
+
 		for (auto j = i + 1; j < length; j++)
 		{
 			auto match_2 = matches_out[j];
@@ -81,13 +81,12 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 		}
 	}
 
-	auto max_count = 0;
-
 	length = angles.size();
+	auto max_count = 0;
 	for (auto i = 0; i < length; i++)
 	{
-		auto count = 0;
 		auto angle_1 = angles[i];
+		auto count = 0;
 
 		for (auto j = 0; j < length; j++)
 		{
@@ -100,6 +99,7 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 			if (distance < angle_match or 2 * M_PI - distance < angle_match)
 				count++;
 		}
+
 		if (count > max_count)
 			max_count = count;
 	}
@@ -126,7 +126,6 @@ int main()
 										  std::to_string(finger_1) + "/" +
 										  std::to_string(number_1) + ext,
 									  cv::IMREAD_GRAYSCALE);
-
 			if (image_1.empty())
 				return -1;
 
@@ -134,7 +133,6 @@ int main()
 										  std::to_string(finger_2) + "/" +
 										  std::to_string(number_2) + ext,
 									  cv::IMREAD_GRAYSCALE);
-
 			if (image_2.empty())
 				continue;
 
