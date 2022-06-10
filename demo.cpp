@@ -210,7 +210,7 @@ int main()
 	update(0, nullptr);
 
 	while (true)
-		if ((cv::waitKey() & 0xff) == 27)
+		if (cv::waitKey() == 27)
 			break;
 
 	cv::destroyAllWindows();
