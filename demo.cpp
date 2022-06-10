@@ -110,12 +110,18 @@ void update(int, void *)
 	auto max_count = 0;
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> true_matches,
 		max_true_matches;
+	std::vector<std::pair<
+		std::pair<cv::Point2f, cv::Point2f>,
+		std::pair<cv::Point2f, cv::Point2f>>>
+		true_angles,
+		max_true_angles;
 	for (auto i = 0; i < length; i++)
 	{
 		auto angle_1 = angles[i];
 
 		auto count = 0;
 		true_matches = {angle_1.second.first, angle_1.second.second};
+		true_angles = {angle_1.second};
 
 		for (auto j = 0; j < length; j++)
 		{
@@ -130,6 +136,7 @@ void update(int, void *)
 				count++;
 				true_matches.push_back(angle_2.second.first);
 				true_matches.push_back(angle_2.second.second);
+				true_angles.push_back(angle_2.second);
 			}
 		}
 
@@ -137,6 +144,7 @@ void update(int, void *)
 		{
 			max_count = count;
 			max_true_matches = true_matches;
+			max_true_angles = true_angles;
 		}
 	}
 
@@ -168,6 +176,16 @@ void update(int, void *)
 				   cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
 		cv::circle(image_3, match.second, 3,
 				   cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
+	}
+
+	for (auto angle : max_true_angles)
+	{
+		angle.first.second.x += image_1.cols;
+		angle.second.second.x += image_1.cols;
+		cv::arrowedLine(image_3, angle.first.first, angle.second.first,
+						cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
+		cv::arrowedLine(image_3, angle.first.second, angle.second.second,
+						cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
 	}
 
 	cv::Scalar color;
