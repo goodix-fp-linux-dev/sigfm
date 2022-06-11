@@ -72,7 +72,6 @@ void update(int, void *)
 	auto angle_match =
 		(double)cv::getTrackbarPos("angle match", "match") / 100;
 	auto max_count = 0;
-	std::pair<cv::Point2f, cv::Point2f> max_match;
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> max_matches;
 	for (auto match_1 : matches_out)
 	{
@@ -123,7 +122,6 @@ void update(int, void *)
 			if (count > max_count)
 			{
 				max_count = count;
-				max_match = match_1;
 				max_matches = matches;
 			}
 		}
@@ -167,20 +165,6 @@ void update(int, void *)
 				   cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
 		cv::circle(image_3, match.second, 3,
 				   cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
-	}
-
-	max_match.second.x += image_1.cols;
-	max_match.first *= size_factor;
-	max_match.second *= size_factor;
-	for (auto match : max_matches)
-	{
-		match.second.x += image_1.cols;
-		match.first *= size_factor;
-		match.second *= size_factor;
-		cv::arrowedLine(image_3, max_match.first, match.first,
-						cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
-		cv::arrowedLine(image_3, max_match.second, match.second,
-						cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
 	}
 
 	cv::Scalar color;
