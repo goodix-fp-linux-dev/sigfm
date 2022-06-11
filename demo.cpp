@@ -240,8 +240,6 @@ int main()
 	cv::setTrackbarPos("min match", "match", 25);
 	cv::setTrackbarPos("size factor", "match", 10);
 
-	update(0, nullptr);
-
 	while (true)
 		if (cv::waitKey() == 27)
 			break;
