@@ -47,15 +47,14 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 				matches_out.push_back(match_out);
 		}
 
-	auto length = matches_out.size();
-	std::vector<double> angles;
-	for (auto i = 0; i < length; i++)
+	auto max_count = 0;
+	for (auto match_1 : matches_out)
 	{
-		auto match_1 = matches_out[i];
-
-		for (auto j = i + 1; j < length; j++)
+		std::vector<double> angles;
+		for (auto match_2 : matches_out)
 		{
-			auto match_2 = matches_out[j];
+			if (match_1 == match_2)
+				continue;
 
 			auto vector_1 = std::make_pair(
 				match_1.first.x - match_2.first.x,
@@ -75,29 +74,20 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 									   vector_1.first * vector_2.first +
 										   vector_1.second * vector_2.second));
 		}
-	}
 
-	length = angles.size();
-	auto max_count = 0;
-	for (auto i = 0; i < length; i++)
-	{
-		auto angle_1 = angles[i];
-		auto count = 0;
-
-		for (auto j = 0; j < length; j++)
+		for (auto angle_1 : angles)
 		{
-			if (i == j)
-				continue;
+			auto count = 1;
+			for (auto angle_2 : angles)
+			{
+				auto distance = std::abs(angle_1 - angle_2);
+				if (distance < angle_match or CV_2PI - distance < angle_match)
+					count++;
+			}
 
-			auto angle_2 = angles[j];
-
-			auto distance = std::abs(angle_1 - angle_2);
-			if (distance < angle_match or 2 * M_PI - distance < angle_match)
-				count++;
+			if (count > max_count)
+				max_count = count;
 		}
-
-		if (count > max_count)
-			max_count = count;
 	}
 
 	return max_count;
