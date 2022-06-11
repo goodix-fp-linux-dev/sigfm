@@ -67,20 +67,21 @@ void update(int, void *)
 				matches_out.push_back(match_out);
 		}
 
-	auto length = matches_out.size();
 	auto length_match =
 		(double)cv::getTrackbarPos("length match", "match") / 100;
-	std::vector<std::pair<double, std::pair<
-									  std::pair<cv::Point2f, cv::Point2f>,
-									  std::pair<cv::Point2f, cv::Point2f>>>>
-		angles;
-	for (auto i = 0; i < length; i++)
+	auto angle_match =
+		(double)cv::getTrackbarPos("angle match", "match") / 100;
+	auto max_count = 0;
+	std::pair<cv::Point2f, cv::Point2f> max_match;
+	std::vector<std::pair<cv::Point2f, cv::Point2f>> max_matches;
+	for (auto match_1 : matches_out)
 	{
-		auto match_1 = matches_out[i];
-
-		for (auto j = i + 1; j < length; j++)
+		std::vector<std::pair<double, std::pair<cv::Point2f, cv::Point2f>>>
+			angles;
+		for (auto match_2 : matches_out)
 		{
-			auto match_2 = matches_out[j];
+			if (match_1 == match_2)
+				continue;
 
 			auto vector_1 = std::make_pair(
 				match_1.first.x - match_2.first.x,
@@ -100,51 +101,31 @@ void update(int, void *)
 							  vector_1.second * vector_2.first,
 						  vector_1.first * vector_2.first +
 							  vector_1.second * vector_2.second),
-					std::make_pair(match_1, match_2)));
+					match_2));
 		}
-	}
 
-	length = angles.size();
-	auto angle_match =
-		(double)cv::getTrackbarPos("angle match", "match") / 100;
-	auto max_count = 0;
-	std::vector<std::pair<cv::Point2f, cv::Point2f>> true_matches,
-		max_true_matches;
-	std::vector<std::pair<
-		std::pair<cv::Point2f, cv::Point2f>,
-		std::pair<cv::Point2f, cv::Point2f>>>
-		true_angles,
-		max_true_angles;
-	for (auto i = 0; i < length; i++)
-	{
-		auto angle_1 = angles[i];
-
-		auto count = 0;
-		true_matches = {angle_1.second.first, angle_1.second.second};
-		true_angles = {angle_1.second};
-
-		for (auto j = 0; j < length; j++)
+		for (auto angle_1 : angles)
 		{
-			if (i == j)
-				continue;
-
-			auto angle_2 = angles[j];
-
-			auto distance = std::abs(angle_1.first - angle_2.first);
-			if (distance < angle_match or 2 * M_PI - distance < angle_match)
+			auto count = 1;
+			std::vector<std::pair<cv::Point2f, cv::Point2f>> matches =
+				{match_1};
+			for (auto angle_2 : angles)
 			{
-				count++;
-				true_matches.push_back(angle_2.second.first);
-				true_matches.push_back(angle_2.second.second);
-				true_angles.push_back(angle_2.second);
+				auto distance = std::abs(angle_1.first - angle_2.first);
+				if (distance < angle_match or 2 * M_PI - distance <
+												  angle_match)
+				{
+					count++;
+					matches.push_back(angle_2.second);
+				}
 			}
-		}
 
-		if (count > max_count)
-		{
-			max_count = count;
-			max_true_matches = true_matches;
-			max_true_angles = true_angles;
+			if (count > max_count)
+			{
+				max_count = count;
+				max_match = match_1;
+				max_matches = matches;
+			}
 		}
 	}
 
@@ -152,15 +133,16 @@ void update(int, void *)
 	cv::hconcat(image_1, image_2, image_3);
 	cv::cvtColor(image_3, image_3, cv::COLOR_GRAY2RGB);
 
-	auto size_factor = (double)cv::getTrackbarPos("size factor", "match") / 10;
+	auto size_factor =
+		(double)cv::getTrackbarPos("size factor", "match") / 10;
 	if (size_factor == 0)
 		size_factor = 1;
 	cv::resize(image_3, image_3, cv::Size(), size_factor, size_factor);
 
 	for (auto match : matches_out)
 	{
-		auto end = max_true_matches.end();
-		if (std::find(max_true_matches.begin(), end, match) == end)
+		auto end = max_matches.end();
+		if (std::find(max_matches.begin(), end, match) == end)
 		{
 			match.second.x += image_1.cols;
 			match.first *= size_factor;
@@ -174,7 +156,7 @@ void update(int, void *)
 		}
 	}
 
-	for (auto match : max_true_matches)
+	for (auto match : max_matches)
 	{
 		match.second.x += image_1.cols;
 		match.first *= size_factor;
@@ -187,17 +169,17 @@ void update(int, void *)
 				   cv::Scalar(0, 255, 0), 1, cv::LINE_AA);
 	}
 
-	for (auto angle : max_true_angles)
+	max_match.second.x += image_1.cols;
+	max_match.first *= size_factor;
+	max_match.second *= size_factor;
+	for (auto match : max_matches)
 	{
-		angle.first.second.x += image_1.cols;
-		angle.second.second.x += image_1.cols;
-		angle.first.first *= size_factor;
-		angle.first.second *= size_factor;
-		angle.second.first *= size_factor;
-		angle.second.second *= size_factor;
-		cv::arrowedLine(image_3, angle.first.first, angle.second.first,
+		match.second.x += image_1.cols;
+		match.first *= size_factor;
+		match.second *= size_factor;
+		cv::arrowedLine(image_3, max_match.first, match.first,
 						cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
-		cv::arrowedLine(image_3, angle.first.second, angle.second.second,
+		cv::arrowedLine(image_3, max_match.second, match.second,
 						cv::Scalar(255, 0, 0), 1, cv::LINE_AA);
 	}
 
