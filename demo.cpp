@@ -111,8 +111,7 @@ void update(int, void *)
 			for (auto angle_2 : angles)
 			{
 				auto distance = std::abs(angle_1.first - angle_2.first);
-				if (distance < angle_match or 2 * M_PI - distance <
-												  angle_match)
+				if (distance < angle_match or CV_2PI - distance < angle_match)
 				{
 					count++;
 					matches.push_back(angle_2.second);
