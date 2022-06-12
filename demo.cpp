@@ -94,8 +94,11 @@ void update(int, void *)
 								 pow(vector_1.second, 2));
 			auto length_2 = sqrt(pow(vector_2.first, 2) +
 								 pow(vector_2.second, 2));
+			
+			if (length_1 > length_2)
+				std::swap(length_1, length_2);
 
-			if (std::abs(length_1 - length_2) < length_match)
+			if (length_1 > length_match * length_2)
 				angles.push_back(std::make_pair(
 					atan2(vector_1.first * vector_2.second -
 							  vector_1.second * vector_2.first,
@@ -190,7 +193,7 @@ int main()
 	cv::setTrackbarPos("image", "image 1", 0);
 	cv::setTrackbarPos("image", "image 2", 1);
 	cv::setTrackbarPos("distance match", "match", 75);
-	cv::setTrackbarPos("length match", "match", 50);
+	cv::setTrackbarPos("length match", "match", 95);
 	cv::setTrackbarPos("angle match", "match", 5);
 	cv::setTrackbarPos("min match", "match", 25);
 

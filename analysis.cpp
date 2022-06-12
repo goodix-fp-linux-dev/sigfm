@@ -10,7 +10,7 @@ auto number = 100;
 auto finger_1 = 0;
 auto finger_2 = 1;
 auto distance_match = 0.75;
-auto length_match = 0.5;
+auto length_match = 0.95;
 auto angle_match = 0.05;
 auto min_match = 25;
 
@@ -68,7 +68,10 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 			auto length_2 = sqrt(pow(vector_2.first, 2) +
 								 pow(vector_2.second, 2));
 
-			if (std::abs(length_1 - length_2) < length_match)
+			if (length_1 > length_2)
+				std::swap(length_1, length_2);
+
+			if (length_1 > length_match * length_2)
 				angles.push_back(atan2(vector_1.first * vector_2.second -
 										   vector_1.second * vector_2.first,
 									   vector_1.first * vector_2.first +
