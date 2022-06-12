@@ -31,7 +31,7 @@ int compare(cv::Mat image_1, cv::Mat image_2)
 	sift->detectAndCompute(image_2, cv::noArray(), keypoints_2, descriptors_2);
 
 	std::vector<std::vector<cv::DMatch>> matches_in;
-	cv::BFMatcher::create(cv::NORM_L2, false)
+	cv::DescriptorMatcher::create(cv::DescriptorMatcher::BRUTEFORCE)
 		->knnMatch(descriptors_1, descriptors_2, matches_in, 2);
 
 	std::vector<std::pair<cv::Point2f, cv::Point2f>> matches_out;
