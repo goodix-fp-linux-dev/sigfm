@@ -35,5 +35,5 @@
 *.png
 *.pgm
 
-# Binaries firmwares
+# Fingerprints descriptors
 *.bin
