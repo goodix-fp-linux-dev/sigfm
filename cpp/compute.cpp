@@ -30,7 +30,7 @@ void compute_finger(string images_path, string clear_path, string save_path) {
 			cv::SIFT::create()->detectAndCompute(image, ROI, keypoints, descriptors);
 
 			cv::FileStorage store(
-					save_path + to_string(i) + ".bin",
+					save_path + to_string(i) + ".yml",
 					cv::FileStorage::WRITE);
 			cv::write(store, "keypoints", keypoints);
 			cv::write(store, "descriptors", descriptors);

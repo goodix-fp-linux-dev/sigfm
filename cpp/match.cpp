@@ -6,7 +6,7 @@ double DISTANCE_MATCH = 0.75;
 double LENGTH_MATCH = 0.05;
 double ANGLE_MATCH = 0.05;
 double MIN_MATCH = 5;
-string ext = ".bin";
+string ext = ".yml";
 
 bool fingerprint_match(string img_path, string clear_path, string sample_path){
 
