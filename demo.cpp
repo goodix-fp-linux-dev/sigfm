@@ -195,7 +195,7 @@ int main()
 	cv::setTrackbarPos("distance match", "match", 75);
 	cv::setTrackbarPos("length match", "match", 95);
 	cv::setTrackbarPos("angle match", "match", 5);
-	cv::setTrackbarPos("min match", "match", 25);
+	cv::setTrackbarPos("min match", "match", 10);
 
 	while (true)
 		if (cv::waitKey() == 27)

@@ -12,7 +12,7 @@ auto finger_2 = 1;
 auto distance_match = 0.75;
 auto length_match = 0.95;
 auto angle_match = 0.05;
-auto min_match = 25;
+auto min_match = 10;
 
 auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);
 
