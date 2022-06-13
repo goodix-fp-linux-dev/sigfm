@@ -2,7 +2,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-std::string folder_path = "/home/mpi3d/Documents/sigfm-cpp/fingerprints/";
+std::string folder_path = "fingerprints/";
 std::string ext = ".png";
 
 auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);

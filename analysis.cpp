@@ -3,7 +3,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 
-std::string folder_path = "/home/mpi3d/Documents/sigfm-cpp/fingerprints/";
+std::string folder_path = "fingerprints/";
 std::string ext = ".png";
 
 auto number = 100;
