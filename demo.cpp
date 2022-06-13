@@ -2,10 +2,10 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-std::string folder_path = "fingerprints/";
+std::string path = "fingerprints/";
 std::string ext = ".png";
 
-auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);
+auto clear = cv::imread(path + "clear" + ext, cv::IMREAD_GRAYSCALE);
 
 // TODO 12 bit depth
 
@@ -20,14 +20,14 @@ void update(int, void *)
 	if (finger_1 == finger_2 && number_1 == number_2)
 		return;
 
-	auto image_1 = cv::imread(folder_path + "finger-" +
+	auto image_1 = cv::imread(path + "finger-" +
 								  std::to_string(finger_1) + "/" +
 								  std::to_string(number_1) + ext,
 							  cv::IMREAD_GRAYSCALE);
 	if (image_1.empty())
 		return;
 
-	auto image_2 = cv::imread(folder_path + "finger-" +
+	auto image_2 = cv::imread(path + "finger-" +
 								  std::to_string(finger_2) + "/" +
 								  std::to_string(number_2) + ext,
 							  cv::IMREAD_GRAYSCALE);

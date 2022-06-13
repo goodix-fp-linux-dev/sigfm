@@ -3,7 +3,7 @@
 #include <opencv2/features2d.hpp>
 #include <opencv2/highgui.hpp>
 
-std::string folder_path = "fingerprints/";
+std::string path = "fingerprints/";
 std::string ext = ".png";
 
 auto number = 100;
@@ -14,7 +14,7 @@ auto length_match = 0.95;
 auto angle_match = 0.05;
 auto min_match = 10;
 
-auto clear = cv::imread(folder_path + "clear" + ext, cv::IMREAD_GRAYSCALE);
+auto clear = cv::imread(path + "clear" + ext, cv::IMREAD_GRAYSCALE);
 
 int compare(cv::Mat image_1, cv::Mat image_2)
 {
@@ -111,14 +111,14 @@ int main()
 			if (finger_1 == finger_2 && number_1 == number_2)
 				continue;
 
-			auto image_1 = cv::imread(folder_path + "finger-" +
+			auto image_1 = cv::imread(path + "finger-" +
 										  std::to_string(finger_1) + "/" +
 										  std::to_string(number_1) + ext,
 									  cv::IMREAD_GRAYSCALE);
 			if (image_1.empty())
 				continue;
 
-			auto image_2 = cv::imread(folder_path + "finger-" +
+			auto image_2 = cv::imread(path + "finger-" +
 										  std::to_string(finger_2) + "/" +
 										  std::to_string(number_2) + ext,
 									  cv::IMREAD_GRAYSCALE);
